@@ -1,6 +1,6 @@
 import arcade
 
-from source.constant import EXPLOSION_SPRITE_SIZE, SPRITE_SCALING
+from source.constant import *
 
 
 class Explosion(arcade.Sprite):
@@ -15,8 +15,8 @@ class Explosion(arcade.Sprite):
 
     def update(self):
         self.__current_texture += 1
-        if int(self.__current_texture / 15) < len(self.textures):
-            self.set_texture(int(self.__current_texture / 15))
+        if int(self.__current_texture / EXPLOSION_SPEED) < len(self.textures):
+            self.set_texture(int(self.__current_texture / EXPLOSION_SPEED))
         else:
             self.remove_from_sprite_lists()
 

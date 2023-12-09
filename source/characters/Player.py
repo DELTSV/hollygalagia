@@ -1,6 +1,6 @@
 import arcade
 
-from source.characters.PlayerExplosion import PlayerExplosion
+from source.effect.PlayerExplosion import PlayerExplosion
 from source.constant import *
 from source.weapons.Missile import Missile
 

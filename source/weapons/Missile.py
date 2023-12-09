@@ -1,5 +1,4 @@
 import arcade
-
 from source.constant import *
 
 
@@ -14,8 +13,8 @@ class Missile(arcade.Sprite):
             image_height=MISSILE_SPRITE_SIZE,
             hit_box_algorithm=None,
             scale=SPRITE_SCALING,
-            center_x=x + MISSILE_SPRITE_SIZE / 2,
-            center_y=y + MISSILE_SPRITE_SIZE / 2
+            center_x=x + MISSILE_SPRITE_SIZE,
+            center_y=y + MISSILE_SPRITE_SIZE
         )
 
     def update(self):

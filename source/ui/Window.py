@@ -21,9 +21,10 @@ class Window(arcade.Window):
 
     def on_update(self, delta_time):
         if len(self.__actions) > 0:
-            if self.__actions[-1] == 65361:
+            moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
+            if len(moves) > 0 and moves[-1] == 65361:
                 self.__player.move_left()
-            elif self.__actions[-1] == 65363:
+            elif len(moves) > 0 and moves[-1] == 65363:
                 self.__player.move_right(self.width)
             if 32 in self.__actions:
                 self.__player.shoot()

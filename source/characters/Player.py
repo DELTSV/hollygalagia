@@ -7,10 +7,11 @@ from source.weapons.Missile import Missile
 
 class Player:
     def __init__(self):
-        self.__x = 0
-        self.__y = 0
+        self.__x = WINDOW_WIDTH / 2
+        self.__y = 50
         self.__sprite = self.__get_sprite(6)
         self.missiles = arcade.SpriteList()
+        self.__delay = 0
 
     @property
     def x(self):
@@ -43,6 +44,8 @@ class Player:
         self.__sprite.update()
         for m in self.missiles:
             m.update()
+        if self.__delay > 0:
+            self.__delay -= 1
 
     def draw(self):
         self.__sprite.draw(pixelated=True)
@@ -61,6 +64,6 @@ class Player:
         return PlayerExplosion(self.__x, self.__y)
 
     def shoot(self):
-        print(len(self.missiles))
-        if len(self.missiles) < 8:
+        if len(self.missiles) < 2 and self.__delay == 0:
             self.missiles.append(Missile(self.__x, self.__y))
+            self.__delay = 10

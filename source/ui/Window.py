@@ -12,6 +12,7 @@ class Window(arcade.Window):
         self.__actions: [int] = []
         self.__effects = arcade.SpriteList()
         self.__enemy = arcade.SpriteList()
+        self.test = 0
 
     def setup(self):
         self.__player = Player()
@@ -21,6 +22,11 @@ class Window(arcade.Window):
         self.run()
 
     def on_update(self, delta_time):
+        # self.test += delta_time
+        # if self.test > 1:
+        #     self.test = 0
+        #     if len(self.__enemy) < 5:
+        #         self.__enemy.append(GalagaBoss(150, 500))
         if len(self.__actions) > 0:
             moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
             if len(moves) > 0 and moves[-1] == 65361:

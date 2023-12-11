@@ -4,7 +4,8 @@ from source.characters.GalagaBoss import GalagaBoss
 from source.characters.Goei import Goei
 from source.characters.Player import Player
 from source.characters.Zako import Zako
-from source.constant import WINDOW_WIDTH, WINDOW_HEIGHT
+from source.constant import WINDOW_WIDTH, WINDOW_HEIGHT, BASE_LINE, CHAR_SPRITE_SIZE, SPRITE_SCALING, CENTER, \
+    SPRITE_SPACING
 
 
 class Window(arcade.Window):
@@ -28,53 +29,60 @@ class Window(arcade.Window):
     def formation(self):
         for i in range(0, 4):
             yield Zako(
-                WINDOW_WIDTH / 2 - (20 if i % 2 == 0 else -20),
-                (450 if i / 2 < 1 else 490),
+                (self.get_col(1) if i % 2 == 0 else self.get_col(-1)),
+                (self.get_line(0) if i / 2 < 1 else self.get_line(1)),
                 1,
                 True
             )
             yield Goei(
-                WINDOW_WIDTH / 2 - (20 if i % 2 == 0 else -20),
-                (530 if i / 2 < 1 else 570),
+                (self.get_col(1) if i % 2 == 0 else self.get_col(-1)),
+                (self.get_line(2) if i / 2 < 1 else self.get_line(3)),
                 1,
                 False
             )
         for i in range(0, 8):
             if i % 2 == 0:
                 yield GalagaBoss(
-                    WINDOW_WIDTH / 2 - (20 if i < 4 else 60) * (1 if i % 4 == 0 else -1),
-                    610,
+                    self.get_col((1 if i < 4 else 2) * (1 if i % 4 == 0 else -1)),
+                    self.get_line(4),
                     1,
-                    False
+                    True
                 )
             else:
                 yield Goei(
-                    WINDOW_WIDTH / 2 - 60 * (1 if (i - 1) % 4 == 0 else -1),
-                    (530 if i / 4 < 1 else 570),
+                    self.get_col(-2 if (i - 1) % 4 == 0 else 2),
+                    (self.get_line(2) if i / 4 < 1 else self.get_line(3)),
                     1,
-                    False
+                    True
                 )
         for i in range(0, 8):
             yield Goei(
-                WINDOW_WIDTH / 2 - (100 if i < 4 else 140) * (1 if i % 2 == 0 else -1),
-                (530 if i % 4 < 2 else 570),
+                self.get_col((3 if i < 4 else 4) * (1 if i % 2 == 0 else -1)),
+                (self.get_line(2) if i % 4 < 2 else self.get_line(3)),
                 1,
-                False
+                True
             )
         for i in range(0, 8):
             yield Zako(
-                WINDOW_WIDTH / 2 - (60 if i < 4 else 100) * (1 if i % 2 == 0 else -1),
-                (450 if i % 4 < 2 else 490),
+                self.get_col((2 if i < 4 else 3) * (1 if i % 2 == 0 else -1)),
+                (self.get_line(0) if i % 4 < 2 else self.get_line(1)),
                 1,
-                False
+                True
             )
         for i in range(0, 8):
             yield Zako(
-                WINDOW_WIDTH / 2 - (140 if i < 4 else 180) * (1 if i % 2 == 0 else -1),
-                (450 if i % 4 < 2 else 490),
+                self.get_col((4 if i < 4 else 5) * (1 if i % 2 == 0 else -1)),
+                (self.get_line(0) if i % 4 < 2 else self.get_line(1)),
                 1,
-                False
+                True
             )
+
+    def get_line(self, line: int):
+        return BASE_LINE + (CHAR_SPRITE_SIZE + SPRITE_SPACING) * SPRITE_SCALING * line
+
+    def get_col(self, col: int):
+        spacing_direction = -1 if col < 0 else 1
+        return CENTER - ((CHAR_SPRITE_SIZE + SPRITE_SPACING) * SPRITE_SCALING * spacing_direction / 2) + (CHAR_SPRITE_SIZE + SPRITE_SPACING) * SPRITE_SCALING * col
 
     def on_update(self, delta_time):
         self.__time += delta_time

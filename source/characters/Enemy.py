@@ -38,31 +38,36 @@ class Enemy(arcade.Sprite):
 
     def enter_1(self, left=False):
         angle = 180
-        x = WINDOW_WIDTH / 2 + (50 if left else -50)
+        start_x = WINDOW_WIDTH / 2 + (15 if left else -15) * SPRITE_SCALING
+        x = start_x
         y = WINDOW_HEIGHT
+        radius = 80 * SPRITE_SCALING
         yield x, y, angle
-        while angle > 100 if not left else angle < 260:
+        while angle > 90 if not left else angle < 260:
             tmp = self.next_in_circle(
-                (WINDOW_WIDTH / 2 + (50 if left else -50) + (-300 if left else 300), WINDOW_HEIGHT),
+                (start_x + (-radius if left else radius), WINDOW_HEIGHT),
                 angle - 90,
                 300,
                 not left
             )
             x, y, angle = tmp
             yield tmp
+        radius = 35 * SPRITE_SCALING
         if left:
-            circle_y = y + cos(radians((angle - 90))) * 100
-            circle_x = x + sin(radians((angle - 90))) * 100
+            circle_y = y + cos(radians((angle - 90))) * radius
+            circle_x = x + sin(radians((angle - 90))) * radius
         else:
-            circle_y = y - cos(radians((angle - 90))) * 100
-            circle_x = x - sin(radians((angle - 90))) * 100
+            circle_y = y - cos(radians((angle - 90))) * radius
+            circle_x = x - sin(radians((angle - 90))) * radius
         while angle < 315:
-            tmp = self.next_in_circle((circle_x, circle_y), angle - 90, 100, left)
+            tmp = self.next_in_circle((circle_x, circle_y), angle - 90, radius, left)
             x, y, angle = tmp
             yield tmp
         while (x, y) != self.__idle:
             to_do = sqrt((abs(self.__idle[0] - x) ** 2) + (abs(self.__idle[1] - y) ** 2))
             angle = ((degrees(asin(abs(y - self.__idle[1]) / to_do)) - 90) % 360 + 360) % 360
+            if self.__idle[0] > x:
+                angle = (90 - angle) + 90
             if to_do < ENEMY_SPEED:
                 x, y = self.__idle
             else:

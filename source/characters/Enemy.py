@@ -1,5 +1,5 @@
-from math import sin, cos, radians, degrees, sqrt
-
+from math import sin, cos, radians, degrees, sqrt, asin
+from time import time
 import arcade
 
 from source.constant import *
@@ -7,8 +7,7 @@ from source.effect.EnemyExplosion import EnemyExplosion
 
 
 class Enemy(arcade.Sprite):
-    def __init__(self, x: int, y: int, texture_list):
-        self.__state_delay = 0
+    def __init__(self, x: int, y: int, texture_list, enter: int, alt: bool):
         self.__state = 0
         self.orientation = 0
         super().__init__(
@@ -16,7 +15,8 @@ class Enemy(arcade.Sprite):
             hit_box_algorithm='Simple'
         )
         self.textures = texture_list
-        self.__positions = self.enter_1(False)
+        if enter == 1:
+            self.__positions = self.enter_1(alt)
         self.__idle = (x, y)
 
     def take_damage(self):
@@ -37,21 +37,31 @@ class Enemy(arcade.Sprite):
 
     def enter_1(self, left=False):
         angle = 180
-        x = WINDOW_WIDTH / 2 + (-250 if left else 250)
+        x = WINDOW_WIDTH / 2
         y = WINDOW_HEIGHT
         yield x, y, angle
-        while angle > 100:
-            tmp = self.next_in_circle((WINDOW_WIDTH / 2 + 300, WINDOW_HEIGHT), angle - 90, 300, True)
+        while angle > 100 if not left else angle < 260:
+            tmp = self.next_in_circle(
+                (WINDOW_WIDTH / 2 + (-300 if left else 300), WINDOW_HEIGHT),
+                angle - 90,
+                300,
+                not left
+            )
             x, y, angle = tmp
             yield tmp
-        circle_y = y - cos(radians((angle - 90))) * 100
-        circle_x = x - sin(radians((angle - 90))) * 100
+        if left:
+            circle_y = y + cos(radians((angle - 90))) * 100
+            circle_x = x + sin(radians((angle - 90))) * 100
+        else:
+            circle_y = y - cos(radians((angle - 90))) * 100
+            circle_x = x - sin(radians((angle - 90))) * 100
         while angle < 315:
-            tmp = self.next_in_circle((circle_x, circle_y), angle - 90, 100)
+            tmp = self.next_in_circle((circle_x, circle_y), angle - 90, 100, left)
             x, y, angle = tmp
             yield tmp
         while (x, y) != self.__idle:
             to_do = sqrt((abs(self.__idle[0] - x) ** 2) + (abs(self.__idle[1] - y) ** 2))
+            angle = ((degrees(asin(abs(y - self.__idle[1]) / to_do)) - 90) % 360 + 360) % 360
             if to_do < ENEMY_SPEED:
                 x, y = self.__idle
             else:
@@ -66,8 +76,7 @@ class Enemy(arcade.Sprite):
             yield x, y, angle
         yield x, y, 0
 
-    def on_update(self, delta_time: float = 1 / 60):
-        self.__state_delay += delta_time
+    def update(self):
         try:
             new_pos = next(self.__positions)
             self.center_x = new_pos[0]
@@ -75,9 +84,10 @@ class Enemy(arcade.Sprite):
             self.orientation = new_pos[2]
         except StopIteration:
             pass
-        if self.__state_delay > 1:
-            self.__state = (self.__state + 1) % 2
-            self.__state_delay = 0
+        if int(time() % 2) == 0 and self.__state == 0:
+            self.__state = 1
+        elif int(time() % 2) == 1:
+            self.__state = 0
         self.set_texture(self.get_texture_index())
 
     def get_texture_index(self):

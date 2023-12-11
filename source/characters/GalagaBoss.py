@@ -5,7 +5,7 @@ from source.constant import *
 
 
 class GalagaBoss(Enemy):
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, y: int, enter: int, alt: bool):
         self.__hp = 2
         coords1 = [(float((i * (CHAR_SPRITE_SIZE + 2)) + ENEMY1_STATE1_SPRITE_ORIGIN[0]),
                     float(ENEMY1_STATE1_SPRITE_ORIGIN[1]), float(CHAR_SPRITE_SIZE),
@@ -39,7 +39,7 @@ class GalagaBoss(Enemy):
             coords1 + coords2,
             hit_box_algorithm='Simple'
         )
-        super().__init__(x, y, textures)
+        super().__init__(x, y, textures, enter, alt)
 
     def take_damage(self):
         self.__hp -= 1

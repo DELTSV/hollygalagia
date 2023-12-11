@@ -18,6 +18,7 @@ class Enemy(arcade.Sprite):
         if enter == 1:
             self.__positions = self.enter_1(alt)
         self.__idle = (x, y)
+        self.is_idle = False
 
     def take_damage(self):
         return self.explode()
@@ -75,6 +76,7 @@ class Enemy(arcade.Sprite):
                     y -= ENEMY_SPEED / to_do * abs(self.__idle[1] - y)
             yield x, y, angle
         yield x, y, 0
+        self.is_idle = True
 
     def update(self):
         try:

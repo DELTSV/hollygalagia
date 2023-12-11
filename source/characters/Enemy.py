@@ -37,12 +37,12 @@ class Enemy(arcade.Sprite):
 
     def enter_1(self, left=False):
         angle = 180
-        x = WINDOW_WIDTH / 2
+        x = WINDOW_WIDTH / 2 + (50 if left else -50)
         y = WINDOW_HEIGHT
         yield x, y, angle
         while angle > 100 if not left else angle < 260:
             tmp = self.next_in_circle(
-                (WINDOW_WIDTH / 2 + (-300 if left else 300), WINDOW_HEIGHT),
+                (WINDOW_WIDTH / 2 + (50 if left else -50) + (-300 if left else 300), WINDOW_HEIGHT),
                 angle - 90,
                 300,
                 not left

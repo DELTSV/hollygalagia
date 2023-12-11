@@ -1,7 +1,9 @@
 import arcade
 
 from source.characters.GalagaBoss import GalagaBoss
+from source.characters.Goei import Goei
 from source.characters.Player import Player
+from source.characters.Zako import Zako
 from source.constant import WINDOW_WIDTH, WINDOW_HEIGHT
 
 
@@ -23,9 +25,12 @@ class Window(arcade.Window):
 
     def on_update(self, delta_time):
         self.__time += delta_time
-        if self.test == 1 and len(self.__enemy) < 10:
+        if self.test == 1 and len(self.__enemy) < 30:
             self.test = 0
-            self.__enemy.append(GalagaBoss(150 + 50 * len(self.__enemy), 500, 1, True))
+            y = 150 + 17 * len(self.__enemy)
+            self.__enemy.append(GalagaBoss(y, 500, 1, True))
+            self.__enemy.append(Goei(y, 460, 1, True))
+            self.__enemy.append(Zako(y, 420, 1, False))
         if self.__time > 0.3:
             self.__time = 0
             self.test += 1

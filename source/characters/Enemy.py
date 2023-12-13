@@ -1,13 +1,18 @@
 from math import sin, cos, radians, degrees, sqrt, asin
 from time import time
+from random import randint
 import arcade
 
+from source.characters.Player import Player
 from source.constant import *
 from source.effect.EnemyExplosion import EnemyExplosion
+from source.effect.PlayerExplosion import PlayerExplosion
+from source.weapons.EnemyMissile import EnemyMissile
+from utils import mod
 
 
 class Enemy(arcade.Sprite):
-    def __init__(self, x: int, y: int, texture_list, enter: int, alt: bool):
+    def __init__(self, x: int, y: int, texture_list, difficulty: int, enter: int, alt: bool):
         self.__state = 0
         self.orientation = 0
         super().__init__(
@@ -17,8 +22,12 @@ class Enemy(arcade.Sprite):
         self.textures = texture_list
         if enter == 1:
             self.__positions = self.enter_1(alt)
+        elif enter == 2:
+            self.__positions = self.enter_2(alt)
         self.__idle = (x, y)
         self.is_idle = False
+        self.__difficulty = difficulty
+        self.__missiles = arcade.SpriteList()
 
     def take_damage(self):
         return self.explode()
@@ -44,14 +53,13 @@ class Enemy(arcade.Sprite):
         radius = 80 * SPRITE_SCALING
         yield x, y, angle
         while angle > 90 if not left else angle < 260:
-            tmp = self.next_in_circle(
+            x, y, angle = self.next_in_circle(
                 (start_x + (-radius if left else radius), WINDOW_HEIGHT),
                 angle - 90,
-                300,
+                radius,
                 not left
             )
-            x, y, angle = tmp
-            yield tmp
+            yield x, y, angle
         radius = 35 * SPRITE_SCALING
         if left:
             circle_y = y + cos(radians((angle - 90))) * radius
@@ -60,12 +68,59 @@ class Enemy(arcade.Sprite):
             circle_y = y - cos(radians((angle - 90))) * radius
             circle_x = x - sin(radians((angle - 90))) * radius
         while angle < 315:
-            tmp = self.next_in_circle((circle_x, circle_y), angle - 90, radius, left)
-            x, y, angle = tmp
-            yield tmp
+            x, y, angle = self.next_in_circle((circle_x, circle_y), angle - 90, radius, left)
+            if 290 < angle < 300 or 110 < angle < 120:
+                if randint(0, 100) < 5 * self.__difficulty:
+                    self.shoot(x, y)
+            yield x, y, angle
+        for move in self.end_move(x, y):
+            yield move
+
+    def shoot(self, x, y):
+        self.__missiles.append(EnemyMissile(x, y))
+
+
+    def enter_2(self, left=False):
+        angle = 90 if left else 270
+        start_x = 0 if left else WINDOW_WIDTH
+        start_y = PLAYER_LINE + 2 * CHAR_SPRITE_SIZE * SPRITE_SCALING
+        x = start_x
+        y = start_y
+        radius = 60 * SPRITE_SCALING
+        yield x, y, angle
+        while int(angle) > 5 if left else int(angle) < 350:
+            x, y, angle = self.next_in_circle((start_x, start_y + radius), angle - 90, radius, left)
+            yield x, y, angle
+        start_y = y
+        radius = 25 * SPRITE_SCALING
+        start_x = x - (-sin(radians(angle - 90)) if left else sin(radians(angle - 90))) * radius
+        start_angle = int(angle) + (-1 if left else 1)
+        circle = 0
+        while True:
+            x, y, new_angle = self.next_in_circle((start_x, start_y), angle - 90, radius, left)
+            if left and new_angle - start_angle <= 0 < angle - start_angle:
+                if circle == 0:
+                    circle = 1
+                else:
+                    break
+            if not left and new_angle - start_angle >= 0 > angle - start_angle:
+                if circle == 0:
+                    circle = 1
+                else:
+                    break
+            angle = new_angle
+            yield x, y, angle
+        if randint(0, 100) < 5 * self.__difficulty:
+            print("shoot")
+            self.shoot(x, y)
+        for move in self.end_move(x, y):
+            yield move
+
+
+    def end_move(self, x, y):
         while (x, y) != self.__idle:
             to_do = sqrt((abs(self.__idle[0] - x) ** 2) + (abs(self.__idle[1] - y) ** 2))
-            angle = ((degrees(asin(abs(y - self.__idle[1]) / to_do)) - 90) % 360 + 360) % 360
+            angle = mod(int((degrees(asin(abs(y - self.__idle[1]) / to_do)) - 90)), 360)
             if self.__idle[0] > x:
                 angle = (90 - angle) + 90
             if to_do < ENEMY_SPEED:
@@ -96,6 +151,11 @@ class Enemy(arcade.Sprite):
         elif int(time() % 2) == 1:
             self.__state = 0
         self.set_texture(self.get_texture_index())
+        self.__missiles.update()
+
+    def draw(self, *, filter=None, pixelated=None, blend_function=None):
+        super().draw(filter=filter, pixelated=pixelated, blend_function=blend_function)
+        self.__missiles.draw(filter=filter, pixelated=pixelated, blend_function=blend_function)
 
     def get_texture_index(self):
         angle = abs(self.orientation % 90)
@@ -124,3 +184,11 @@ class Enemy(arcade.Sprite):
             return index + 16
         else:
             return 7 - index + 24
+
+    def detect_missile_hit_player(self, player: Player) -> PlayerExplosion | None:
+        hit_list = arcade.check_for_collision_with_list(player.sprite, self.__missiles)
+        for m in hit_list:
+            m.remove_from_sprite_lists()
+        if len(hit_list) > 0:
+            return player.explode()
+        return None

@@ -3,7 +3,7 @@ from source.constant import *
 import arcade
 
 class Goei(Enemy):
-    def __init__(self, x: int, y: int, enter: int, alt: bool):
+    def __init__(self, x: int, y: int, difficulty: int, enter: int, alt: bool):
         coords1 = [(float((i * (CHAR_SPRITE_SIZE + 2)) + ENEMY2_SPRITE_ORIGIN[0]),
                     float(ENEMY2_SPRITE_ORIGIN[1]), float(CHAR_SPRITE_SIZE),
                     float(CHAR_SPRITE_SIZE))
@@ -32,4 +32,4 @@ class Goei(Enemy):
             coords1,
             hit_box_algorithm='Simple'
         )
-        super().__init__(x, y, textures, enter, alt)
+        super().__init__(x, y, textures, difficulty, enter, alt)

@@ -1,5 +1,6 @@
 import arcade
 
+from source.characters.EnemyList import EnemyList
 from source.characters.GalagaBoss import GalagaBoss
 from source.characters.Goei import Goei
 from source.characters.Player import Player
@@ -14,10 +15,11 @@ class Window(arcade.Window):
         self.__player: Player | None = None
         self.__actions: [int] = []
         self.__effects = arcade.SpriteList()
-        self.__enemy = arcade.SpriteList()
+        self.__enemy = EnemyList()
         self.__time = 0
         self.test = 0
         self.__waiting = self.formation()
+        self.__wave = 0
 
 
     def setup(self):
@@ -32,11 +34,13 @@ class Window(arcade.Window):
                 (self.get_col(1) if i % 2 == 0 else self.get_col(-1)),
                 (self.get_line(0) if i / 2 < 1 else self.get_line(1)),
                 1,
+                1,
                 True
             )
             yield Goei(
                 (self.get_col(1) if i % 2 == 0 else self.get_col(-1)),
                 (self.get_line(2) if i / 2 < 1 else self.get_line(3)),
+                1,
                 1,
                 False
             )
@@ -46,6 +50,7 @@ class Window(arcade.Window):
                     self.get_col((1 if i < 4 else 2) * (1 if i % 4 == 0 else -1)),
                     self.get_line(4),
                     1,
+                    2,
                     True
                 )
             else:
@@ -53,6 +58,7 @@ class Window(arcade.Window):
                     self.get_col(-2 if (i - 1) % 4 == 0 else 2),
                     (self.get_line(2) if i / 4 < 1 else self.get_line(3)),
                     1,
+                    2,
                     True
                 )
         for i in range(0, 8):
@@ -60,12 +66,14 @@ class Window(arcade.Window):
                 self.get_col((3 if i < 4 else 4) * (1 if i % 2 == 0 else -1)),
                 (self.get_line(2) if i % 4 < 2 else self.get_line(3)),
                 1,
-                True
+                2,
+                False
             )
         for i in range(0, 8):
             yield Zako(
                 self.get_col((2 if i < 4 else 3) * (1 if i % 2 == 0 else -1)),
                 (self.get_line(0) if i % 4 < 2 else self.get_line(1)),
+                1,
                 1,
                 True
             )
@@ -73,6 +81,7 @@ class Window(arcade.Window):
             yield Zako(
                 self.get_col((4 if i < 4 else 5) * (1 if i % 2 == 0 else -1)),
                 (self.get_line(0) if i % 4 < 2 else self.get_line(1)),
+                1,
                 1,
                 True
             )
@@ -89,23 +98,21 @@ class Window(arcade.Window):
         if self.__time > 0.3:
             self.__time = 0
             try:
-                if len(self.__enemy) < 8:
+                if self.__wave == 0 and self.__enemy.total_enemies_spawned < 8:
                     self.__enemy.append(next(self.__waiting))
                     self.__enemy.append(next(self.__waiting))
-                elif len(self.__enemy) < 16:
-                    if self.__enemy[7].is_idle:
-                        self.__enemy.append(next(self.__waiting))
-                elif len(self.__enemy) < 24:
-                    if self.__enemy[15].is_idle:
-                        self.__enemy.append(next(self.__waiting))
-                elif len(self.__enemy) < 32:
-                    if self.__enemy[23].is_idle:
-                        self.__enemy.append(next(self.__waiting))
-                elif len(self.__enemy) < 40:
-                    if self.__enemy[31].is_idle:
-                        self.__enemy.append(next(self.__waiting))
+                elif self.__wave == 1 and self.__enemy.total_enemies_spawned < 16:
+                    self.__enemy.append(next(self.__waiting))
+                elif self.__wave == 2 and self.__enemy.total_enemies_spawned < 24:
+                    self.__enemy.append(next(self.__waiting))
+                elif self.__wave == 3 and self.__enemy.total_enemies_spawned < 32:
+                    self.__enemy.append(next(self.__waiting))
+                elif self.__wave == 4 and self.__enemy.total_enemies_spawned < 40:
+                    self.__enemy.append(next(self.__waiting))
             except StopIteration:
                 pass
+            if self.__enemy.total_idle() == self.__enemy.total():
+                self.__wave += 1
         if len(self.__actions) > 0:
             moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
             if len(moves) > 0 and moves[-1] == 65361:
@@ -116,8 +123,13 @@ class Window(arcade.Window):
                 self.__player.shoot()
             if 101 in self.__actions:
                 self.__effects.append(self.__player.explode())
+            if self.__player.killed and 65293 in self.__actions:
+                self.__player.revive()
         self.detect_enemy_hit()
+        explosion = self.__enemy.detect_hit_with_player(self.__player)
         self.__player.update()
+        if explosion is not None:
+            self.__effects.append(explosion)
         self.__effects.update()
         self.__enemy.update()
 

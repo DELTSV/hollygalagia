@@ -52,7 +52,7 @@ class Player:
             image_y=PLAYER_SPRITE_ORIGIN[1],
             image_width=CHAR_SPRITE_SIZE,
             image_height=CHAR_SPRITE_SIZE,
-            hit_box_algorithm=None,
+            hit_box_algorithm='Simple',
             scale=SPRITE_SCALING
         )
 

@@ -109,6 +109,8 @@ class Window(arcade.Window):
                     self.__enemy.append(next(self.__waiting))
                 elif self.__wave == 4 and self.__enemy.total_enemies_spawned < 40:
                     self.__enemy.append(next(self.__waiting))
+                elif self.__wave == 5:
+                    self.__enemy.can_attack()
             except StopIteration:
                 pass
             if self.__enemy.total_idle() == self.__enemy.total():
@@ -126,6 +128,9 @@ class Window(arcade.Window):
             if self.__player.killed and 65293 in self.__actions:
                 self.__player.revive()
         self.detect_enemy_hit()
+        if self.__wave >= 5:
+            for e in self.__enemy.detect_collision_with_player(self.__player):
+                self.__effects.append(e)
         explosion = self.__enemy.detect_hit_with_player(self.__player)
         self.__player.update()
         if explosion is not None:

@@ -3,6 +3,7 @@ from arcade.sprite_list.sprite_list import _SpriteType
 
 from source.characters.Enemy import Enemy
 from source.characters.Player import Player
+from source.effect.Explosion import Explosion
 from source.effect.PlayerExplosion import PlayerExplosion
 
 
@@ -36,6 +37,16 @@ class EnemyList(arcade.SpriteList):
                 return explosion
         return None
 
+    def detect_collision_with_player(self, player: Player) -> [Explosion]:
+        hit_list = arcade.check_for_collision_with_list(player.sprite, self)
+        explosion = []
+        for e in hit_list:
+            explosion.append(e.explode())
+            e.remove_from_sprite_lists()
+        if len(explosion) > 0:
+            explosion.append(player.explode())
+        return explosion
+
     def total_idle(self) -> int:
         return sum(e.is_idle for e in self.__enemies)
 
@@ -45,3 +56,7 @@ class EnemyList(arcade.SpriteList):
     @property
     def total_enemies_spawned(self) -> int:
         return self.__total_enemies_spawned
+
+    def can_attack(self):
+        for e in self.__enemies:
+            e.can_attack = True

@@ -1,4 +1,4 @@
-from math import sin, cos, radians, degrees, sqrt, asin
+from math import sin, cos, radians, degrees, sqrt, asin, acos
 from time import time
 from random import randint
 import arcade
@@ -28,6 +28,7 @@ class Enemy(arcade.Sprite):
         self.is_idle = False
         self.__difficulty = difficulty
         self.__missiles = arcade.SpriteList()
+        self.can_attack = False
 
     def take_damage(self):
         return self.explode()
@@ -73,12 +74,11 @@ class Enemy(arcade.Sprite):
                 if randint(0, 100) < 5 * self.__difficulty:
                     self.shoot(x, y)
             yield x, y, angle
-        for move in self.end_move(x, y):
+        for move in self.end_move():
             yield move
 
     def shoot(self, x, y):
         self.__missiles.append(EnemyMissile(x, y))
-
 
     def enter_2(self, left=False):
         angle = 90 if left else 270
@@ -111,45 +111,30 @@ class Enemy(arcade.Sprite):
             angle = new_angle
             yield x, y, angle
         if randint(0, 100) < 5 * self.__difficulty:
-            print("shoot")
             self.shoot(x, y)
-        for move in self.end_move(x, y):
+        for move in self.end_move():
             yield move
 
-
-    def end_move(self, x, y):
-        while (x, y) != self.__idle:
-            to_do = sqrt((abs(self.__idle[0] - x) ** 2) + (abs(self.__idle[1] - y) ** 2))
-            angle = mod(int((degrees(asin(abs(y - self.__idle[1]) / to_do)) - 90)), 360)
-            if self.__idle[0] > x:
-                angle = (90 - angle) + 90
-            if to_do < ENEMY_SPEED:
-                x, y = self.__idle
-            else:
-                if x < self.__idle[0]:
-                    x += ENEMY_SPEED / to_do * abs(self.__idle[0] - x)
-                else:
-                    x -= ENEMY_SPEED / to_do * abs(self.__idle[0] - x)
-                if y < self.__idle[1]:
-                    y += ENEMY_SPEED / to_do * abs(self.__idle[1] - y)
-                else:
-                    y -= ENEMY_SPEED / to_do * abs(self.__idle[1] - y)
-            yield x, y, angle
-        yield x, y, 0
+    def end_move(self):
+        for m in self.goto(self.__idle[0], self.__idle[1]):
+            yield m
+        yield self.__idle[0], self.__idle[1], 0
         self.is_idle = True
 
     def update(self):
+        if self.orientation < 0:
+            print(self.orientation)
         try:
             new_pos = next(self.__positions)
-            self.center_x = new_pos[0]
-            self.center_y = new_pos[1]
-            self.orientation = new_pos[2]
+            self.center_x, self.center_y, self.orientation = new_pos
         except StopIteration:
             pass
         if int(time() % 2) == 0 and self.__state == 0:
             self.__state = 1
         elif int(time() % 2) == 1:
             self.__state = 0
+        if self.can_attack and randint(0, 10000) < 2 * self.__difficulty:
+            self.__positions = self.attack()
         self.set_texture(self.get_texture_index())
         self.__missiles.update()
 
@@ -192,3 +177,66 @@ class Enemy(arcade.Sprite):
         if len(hit_list) > 0:
             return player.explode()
         return None
+
+    def stall(self):
+        start_x, start_y = self.__idle
+        left = randint(0, 1) == 1
+        x = start_x
+        y = start_y
+        angle = 359 if left else 0
+        radius = 5 * SPRITE_SCALING
+        yield x, y, angle
+        while angle > 180 if left else angle < 180:
+            x, y, angle = self.next_in_circle((start_x + (-radius if left else radius), start_y), angle - 90, radius, left)
+            if angle > 180 if left else angle < 180:
+                angle = 180
+            yield x, y, angle
+
+    def attack(self):
+        self.can_attack = False
+        self.is_idle = False
+        x, y, angle = 0, 0, 0
+        for m in self.stall():
+            x, y, angle = m
+            yield x, y, angle
+        dest_x = WINDOW_WIDTH / 2 + (abs(x - WINDOW_WIDTH / 2) * (-1 if x < WINDOW_WIDTH / 2 else 1))
+        dest_y = BASE_LINE - CHAR_SPRITE_SIZE * SPRITE_SCALING
+        for m in self.goto(dest_x, dest_y):
+            x, y, angle = m
+            yield m
+        for m in self.end_attack(x, y):
+            yield m
+        self.is_idle = True
+        self.can_attack = True
+
+    def goto(self, dest_x, dest_y):
+        x, y = self.center_x, self.center_y
+        while (x, y) != (dest_x, dest_y):
+            to_do = sqrt((abs(dest_x - x) ** 2) + (abs(dest_y - y) ** 2))
+            if x < dest_x:
+                if y < dest_y:
+                    angle = mod(int((degrees(acos(abs(y - dest_y) / to_do)))), 360)
+                else:
+                    angle = mod(int((degrees(asin(abs(y - dest_y) / to_do)))) + 90, 360)
+            else:
+                if y < dest_y:
+                    angle = mod(int((degrees(asin(abs(y - dest_y) / to_do)))) - 90, 360)
+                else:
+                    angle = mod(int((degrees(acos(abs(y - dest_y) / to_do)))) + 180, 360)
+            if to_do < ENEMY_SPEED:
+                x, y = dest_x, dest_y
+                angle = self.orientation
+            else:
+                if x < dest_x:
+                    x += ENEMY_SPEED / to_do * abs(dest_x - x)
+                else:
+                    x -= ENEMY_SPEED / to_do * abs(dest_x - x)
+                if y < dest_y:
+                    y += ENEMY_SPEED / to_do * abs(dest_y - y)
+                else:
+                    y -= ENEMY_SPEED / to_do * abs(dest_y - y)
+            yield x, y, angle
+
+    def end_attack(self, x, y):
+        for m in self.end_move():
+            yield m

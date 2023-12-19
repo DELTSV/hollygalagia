@@ -1,6 +1,12 @@
+import random
+from math import sqrt, degrees, asin
+
 from source.characters.Enemy import Enemy
 from source.constant import *
 import arcade
+
+from utils import mod
+
 
 class Zako(Enemy):
     def __init__(self, x: int, y: int, difficulty: int, enter: int, alt: bool):
@@ -33,3 +39,21 @@ class Zako(Enemy):
             hit_box_algorithm='Simple'
         )
         super().__init__(x, y, textures, difficulty, enter, alt)
+
+    def end_attack(self, x, y):
+        dest_x = random.randint(0, WINDOW_WIDTH)
+        dest_y = PLAYER_LINE
+        for m in self.goto(dest_x, dest_y):
+            x, y, angle = m
+            yield m
+        left = random.randint(0, 1) == 1
+        angle = 180
+        radius = 10 * SPRITE_SCALING
+        yield x, y, angle
+        start_x = x + (radius if left else - radius)
+        start_y = y
+        while 0 <= angle <= 180 if left else angle >= 180:
+            x, y, angle = self.next_in_circle((start_x, start_y), angle - 90, radius, left)
+            yield x, y, angle
+        for m in self.end_move():
+            yield m

@@ -137,6 +137,9 @@ class Window(arcade.Window):
             self.__effects.append(explosion)
         self.__effects.update()
         self.__enemy.update()
+        if self.__enemy.total_enemies_spawned > 0 and self.__enemy.total() == 0:
+            print("win")
+            self.close()
 
     def on_draw(self):
         self.clear()

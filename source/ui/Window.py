@@ -21,6 +21,7 @@ class Window(arcade.Window):
         self.test = 0
         self.__waiting = self.formation()
         self.__wave = 0
+        self.__pause = False
 
     def setup(self):
         self.__player = Agent()
@@ -94,6 +95,25 @@ class Window(arcade.Window):
         return CENTER - ((CHAR_SPRITE_SIZE + SPRITE_SPACING) * SPRITE_SCALING * spacing_direction / 2) + (CHAR_SPRITE_SIZE + SPRITE_SPACING) * SPRITE_SCALING * col
 
     def on_update(self, delta_time):
+        if len(self.__actions) > 0:
+            if self.__player.killed and 65293 in self.__actions:
+                self.__player.revive()
+            if self.__pause and 65293 in self.__actions:
+                self.__pause = False
+            if 65307 in self.__actions:
+                self.__player.save()
+                self.close()
+        #     moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
+        #     if len(moves) > 0 and moves[-1] == 65361:
+        #         self.__player.move_left()
+        #     elif len(moves) > 0 and moves[-1] == 65363:
+        #         self.__player.move_right(self.width)
+        #     if 32 in self.__actions:
+        #         self.__player.shoot()
+        #     if 101 in self.__actions:
+        #         self.__effects.append(self.__player.explode())
+        if self.__pause:
+            return
         self.__time += delta_time
         if self.__time > 0.3:
             self.__time = 0
@@ -115,18 +135,6 @@ class Window(arcade.Window):
                 pass
             if self.__enemy.total_idle() == self.__enemy.total():
                 self.__wave += 1
-        # if len(self.__actions) > 0:
-        #     moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
-        #     if len(moves) > 0 and moves[-1] == 65361:
-        #         self.__player.move_left()
-        #     elif len(moves) > 0 and moves[-1] == 65363:
-        #         self.__player.move_right(self.width)
-        #     if 32 in self.__actions:
-        #         self.__player.shoot()
-        #     if 101 in self.__actions:
-        #         self.__effects.append(self.__player.explode())
-        #     if self.__player.killed and 65293 in self.__actions:
-        #         self.__player.revive()
         enemy_killed = self.detect_enemy_hit()
         killed = False
         win_or_loose = None
@@ -142,9 +150,8 @@ class Window(arcade.Window):
         self.__effects.update()
         self.__enemy.update()
         if self.__enemy.total_enemies_spawned > 0 and self.__enemy.total() == 0:
-            print("win")
             win_or_loose = True
-            self.close()
+            self.__pause = True
         self.__player.do(killed, enemy_killed, win_or_loose)
 
     def on_draw(self):

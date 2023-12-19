@@ -7,7 +7,7 @@ from source.weapons.Missile import Missile
 
 class Player:
     def __init__(self):
-        self.__x = WINDOW_WIDTH / 2
+        self.__x = int(WINDOW_WIDTH / 2)
         self.__y = PLAYER_LINE
         self.__sprite = self.__get_sprite(6)
         self.missiles = arcade.SpriteList()
@@ -20,7 +20,11 @@ class Player:
         return self.__x
 
     @x.setter
-    def x(self, value): self.__x = value
+    def x(self, value):
+        if value < 0:
+            self.__x = 0
+        else:
+            self.__x = int(value)
 
     @property
     def y(self):
@@ -58,9 +62,9 @@ class Player:
 
     def update(self):
         if self.__killed:
-            self.__x = -1000
-        self.__sprite.center_x = self.__x + CHAR_SPRITE_SIZE * SPRITE_SCALING / 2
-        self.__sprite.center_y = self.__y + CHAR_SPRITE_SIZE * SPRITE_SCALING / 2
+            self.x = -1000
+        self.__sprite.center_x = self.x + CHAR_SPRITE_SIZE * SPRITE_SCALING / 2
+        self.__sprite.center_y = self.y + CHAR_SPRITE_SIZE * SPRITE_SCALING / 2
         self.__sprite.update()
         for m in self.missiles:
             m.update()
@@ -69,7 +73,7 @@ class Player:
 
     def revive(self):
         if self.__life > 0:
-            self.__x = WINDOW_WIDTH / 2
+            self.x = WINDOW_WIDTH / 2
             self.__killed = False
             self.__life -= 1
 
@@ -79,18 +83,22 @@ class Player:
             m.draw(pixelated=True)
 
     def move_left(self):
-        if not self.__killed and self.__x > 0:
-            self.__x -= PLAYER_SPEED
+        if not self.__killed and self.x > 0:
+            self.x -= PLAYER_SPEED
+            return True
+        return False
 
     def move_right(self, map_max: int):
-        if not self.__killed and self.__x < map_max - CHAR_SPRITE_SIZE - PLAYER_SPEED:
-            self.__x += PLAYER_SPEED
+        if not self.__killed and self.x < map_max - CHAR_SPRITE_SIZE - PLAYER_SPEED:
+            self.x += PLAYER_SPEED
+            return True
+        return False
 
     def explode(self) -> PlayerExplosion:
         self.__killed = True
-        return PlayerExplosion(self.__x, self.__y)
+        return PlayerExplosion(self.x, self.y)
 
     def shoot(self):
         if not self.__killed and len(self.missiles) < 2 and self.__delay == 0:
-            self.missiles.append(Missile(self.__x, self.__y))
+            self.missiles.append(Missile(self.x, self.y))
             self.__delay = 10

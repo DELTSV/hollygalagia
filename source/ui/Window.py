@@ -7,12 +7,13 @@ from source.characters.Player import Player
 from source.characters.Zako import Zako
 from source.constant import WINDOW_WIDTH, WINDOW_HEIGHT, BASE_LINE, CHAR_SPRITE_SIZE, SPRITE_SCALING, CENTER, \
     SPRITE_SPACING
+from source.ui.Agent import Agent
 
 
 class Window(arcade.Window):
     def __init__(self):
         super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, "Galaga")
-        self.__player: Player | None = None
+        self.__player: Agent | None = None
         self.__actions: [int] = []
         self.__effects = arcade.SpriteList()
         self.__enemy = EnemyList()
@@ -21,9 +22,8 @@ class Window(arcade.Window):
         self.__waiting = self.formation()
         self.__wave = 0
 
-
     def setup(self):
-        self.__player = Player()
+        self.__player = Agent()
 
     def start(self):
         self.run()
@@ -115,31 +115,37 @@ class Window(arcade.Window):
                 pass
             if self.__enemy.total_idle() == self.__enemy.total():
                 self.__wave += 1
-        if len(self.__actions) > 0:
-            moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
-            if len(moves) > 0 and moves[-1] == 65361:
-                self.__player.move_left()
-            elif len(moves) > 0 and moves[-1] == 65363:
-                self.__player.move_right(self.width)
-            if 32 in self.__actions:
-                self.__player.shoot()
-            if 101 in self.__actions:
-                self.__effects.append(self.__player.explode())
-            if self.__player.killed and 65293 in self.__actions:
-                self.__player.revive()
-        self.detect_enemy_hit()
+        # if len(self.__actions) > 0:
+        #     moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
+        #     if len(moves) > 0 and moves[-1] == 65361:
+        #         self.__player.move_left()
+        #     elif len(moves) > 0 and moves[-1] == 65363:
+        #         self.__player.move_right(self.width)
+        #     if 32 in self.__actions:
+        #         self.__player.shoot()
+        #     if 101 in self.__actions:
+        #         self.__effects.append(self.__player.explode())
+        #     if self.__player.killed and 65293 in self.__actions:
+        #         self.__player.revive()
+        enemy_killed = self.detect_enemy_hit()
+        killed = False
+        win_or_loose = None
         if self.__wave >= 5:
             for e in self.__enemy.detect_collision_with_player(self.__player):
                 self.__effects.append(e)
+                killed = True
         explosion = self.__enemy.detect_hit_with_player(self.__player)
         self.__player.update()
         if explosion is not None:
+            killed = True
             self.__effects.append(explosion)
         self.__effects.update()
         self.__enemy.update()
         if self.__enemy.total_enemies_spawned > 0 and self.__enemy.total() == 0:
             print("win")
+            win_or_loose = True
             self.close()
+        self.__player.do(killed, enemy_killed, win_or_loose)
 
     def on_draw(self):
         self.clear()
@@ -156,12 +162,15 @@ class Window(arcade.Window):
             self.__actions.remove(symbol)
 
     def detect_enemy_hit(self):
+        tot = 0
         for m in self.__player.missiles:
             hit_list = arcade.check_for_collision_with_list(m, self.__enemy)
             for enemy in hit_list:
                 explosion = enemy.take_damage()
                 if explosion is not None:
+                    tot += 1
                     self.__effects.append(explosion)
                     enemy.remove_from_sprite_lists()
             if len(hit_list) != 0:
                 m.remove_from_sprite_lists()
+        return tot

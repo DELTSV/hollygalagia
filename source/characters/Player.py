@@ -1,12 +1,13 @@
 import arcade
 
+from source.characters import EnemyList
 from source.effect.PlayerExplosion import PlayerExplosion
 from source.constant import *
 from source.weapons.Missile import Missile
 
 
 class Player:
-    def __init__(self):
+    def __init__(self, enemy_list: EnemyList):
         self.__x = int(WINDOW_WIDTH / 2)
         self.__y = PLAYER_LINE
         self.__sprite = self.__get_sprite(6)
@@ -14,6 +15,7 @@ class Player:
         self.__delay = 0
         self.__life = 3
         self.__killed = False
+        self.__enemy_list = enemy_list
 
     @property
     def x(self):
@@ -102,3 +104,7 @@ class Player:
         if not self.__killed and len(self.missiles) < 2 and self.__delay == 0:
             self.missiles.append(Missile(self.x, self.y))
             self.__delay = 10
+
+    @property
+    def enemy_list(self) -> EnemyList:
+        return self.__enemy_list

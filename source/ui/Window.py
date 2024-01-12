@@ -1,9 +1,11 @@
+import os
+# os.environ["ARCADE_HEADLESS"] = "False"
+
 import arcade
 
 from source.characters.EnemyList import EnemyList
 from source.characters.GalagaBoss import GalagaBoss
 from source.characters.Goei import Goei
-from source.characters.Player import Player
 from source.characters.Zako import Zako
 from source.constant import WINDOW_WIDTH, WINDOW_HEIGHT, BASE_LINE, CHAR_SPRITE_SIZE, SPRITE_SCALING, CENTER, \
     SPRITE_SPACING
@@ -24,7 +26,7 @@ class Window(arcade.Window):
         self.__pause = False
 
     def setup(self):
-        self.__player = Agent()
+        self.__player = Agent(self.__enemy)
 
     def start(self):
         self.run()

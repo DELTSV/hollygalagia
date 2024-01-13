@@ -1,8 +1,12 @@
 import json
 
+import arcade
+
 from source.characters import EnemyList
 from source.characters.Player import Player
-from source.constant import WINDOW_WIDTH, CHAR_SPRITE_SIZE, SPRITE_SCALING
+from source.constant import WINDOW_WIDTH, CHAR_SPRITE_SIZE, SPRITE_SCALING, PLAYER_SPEED
+from source.ui.Lidar import Lidar
+from source.ui.Radar import Radar, STATE
 
 KILL = 100
 DEATH = -1_000
@@ -17,19 +21,48 @@ FIRE = 2
 ACTIONS = [MOVE_LEFT, MOVE_RIGHT, FIRE]
 
 
+def increment(index: [int], max: int):
+    i = 0
+    index[i] += 1
+    while i < len(index) and index[i] >= max:
+        index[i] = 0
+        if i < len(index) - 1:
+            index[i+1] += 1
+        i += 1
+
+
 class Agent(Player):
-    def __init__(self, enemy_list: EnemyList):
+    def __init__(self, enemy_list: EnemyList, radar_position: [(int, int)]):
         super().__init__(enemy_list)
         self.__score = -1
         self.__qtable = {}
+        self.__radar = arcade.SpriteList()
+        self.__lidar = Lidar(self.x + CHAR_SPRITE_SIZE / 2 * SPRITE_SCALING, self.enemy_list)
+        for x, y in radar_position:
+            self.__radar.append(Radar(x, y, self.x, self.y))
         tmp = self.load()
         if tmp is None:
-            for e1 in range(-1, 3):
-                for e2 in range(-1, 3):
-                    k = (e1, e2)
-                    self.__qtable[k] = {}
-                    for action in ACTIONS:
-                        self.__qtable[k][action] = 0.0
+            radar_state = []
+            index = []
+            for c, l in radar_position:
+                radars = []
+                for s in STATE:
+                    radars.append((l, c, s))
+                index.append(0)
+                radar_state.append(radars)
+            done = False
+            while not done:
+                key = ()
+                for i in range(0, len(index)):
+                    key += radar_state[i][index[i]]
+                for s in STATE:
+                    key2 = key + tuple([s])
+                    self.__qtable[key2] = {}
+                    for a in ACTIONS:
+                        self.__qtable[key2][a] = 0.0
+                increment(index, len(STATE))
+                if max(index) == 0:
+                    done = True
         else:
             for i in tmp:
                 val = {}
@@ -38,33 +71,58 @@ class Agent(Player):
                 self.__qtable[i] = val
 
     def get_best_action(self):
-        l = self.get_left_enemy()
-        r = self.get_right_enemy()
-        k = (l, r)
+        k = self.get_state()
         action = self.arg_max(self.__qtable[k])
         return action
 
-    def get_left_enemy(self) -> int:
-        size = CHAR_SPRITE_SIZE * SPRITE_SCALING
-        enemy = []
-        for e in self.enemy_list:
-            if 0 < e.center_y < size:
-                if e.center_x < self.sprite.center_x and self.sprite.center_x - e.center_x < 100:
-                    enemy.append(int((self.sprite.center_x - e.center_x) / 33.3))
-        if len(enemy) == 0:
-            return -1
-        return min(enemy)
+    def get_state(self):
+        return self.get_radar_data() + tuple([self.__lidar.detect_nearest_object()])
 
-    def get_right_enemy(self) -> int:
+    def __create_radar_sprite(self, line: int, column: int) -> arcade.Sprite:
         size = CHAR_SPRITE_SIZE * SPRITE_SCALING
-        enemy = []
+        return arcade.Sprite(
+            "resources/box.png",
+            SPRITE_SCALING,
+            image_width=CHAR_SPRITE_SIZE,
+            image_height=CHAR_SPRITE_SIZE,
+            center_x=(column * size + size / 2) + self.x,
+            center_y=(line * size + size / 2) + self.y
+        )
+
+    def get_radar_data(self):
+        data = ()
+        missiles = []
         for e in self.enemy_list:
-            if 0 < e.center_y < size:
-                if e.center_x > self.sprite.center_x and e.center_x - self.sprite.center_x < 100:
-                    enemy.append(int((e.center_x - self.sprite.center_x) / 33.3))
-        if len(enemy) == 0:
-            return -1
-        return min(enemy)
+            missiles.append(e.missiles)
+        for r in self.__radar:
+            data += r.get_data(self.enemy_list, missiles)
+        return data
+
+    def get_enemy_in_square_from_user(self, line: int, column: int):
+        size = CHAR_SPRITE_SIZE * SPRITE_SCALING
+        target = arcade.Sprite("resources/box.png", SPRITE_SCALING, image_width=size, image_height=size, center_x=line * size - size / 2, center_y=column * size - size / 2)
+        return len(arcade.check_for_collision_with_list(target, self.enemy_list)) != 0
+
+    def move_left(self) -> bool:
+        for s in self.__radar:
+            s.center_x -= PLAYER_SPEED
+        self.__lidar.x -= PLAYER_SPEED
+        return super().move_left()
+
+    def move_right(self, map_max: int) -> bool:
+        for s in self.__radar:
+            s.center_x += PLAYER_SPEED
+        self.__lidar.x += PLAYER_SPEED
+        return super().move_right(map_max)
+
+    def update(self):
+        super().update()
+        self.__radar.update()
+
+    def draw(self):
+        super().draw()
+        self.__radar.draw()
+        self.__lidar.draw()
 
     def arg_max(self, table):
         return max(table, key=table.get)
@@ -72,7 +130,7 @@ class Agent(Player):
     def do(self, killed: bool, enemy_killed: int, win_or_loose: bool | None):
         action = self.get_best_action()
         reward = 0
-        old_state = (self.get_left_enemy(), self.get_right_enemy())
+        old_state = self.get_state()
         if action == MOVE_LEFT:
             if not self.move_left():
                 reward += OUT_MAP
@@ -93,7 +151,7 @@ class Agent(Player):
         current = self.__qtable[old_state][action]
         alpha = 0.5
         gamma = 0.5
-        next_max = self.arg_max(self.__qtable[(self.get_left_enemy(), self.get_right_enemy())])
+        next_max = self.arg_max(self.__qtable[self.get_state()])
         self.__score += reward
         self.__qtable[old_state][action] = current + alpha * (reward + gamma * next_max - current)
 
@@ -118,3 +176,10 @@ class Agent(Player):
                 return final
         except FileNotFoundError:
             return None
+
+    def revive(self):
+        super().revive()
+        self.__lidar.x = self.x + CHAR_SPRITE_SIZE / 2 * SPRITE_SCALING
+        size = CHAR_SPRITE_SIZE * SPRITE_SCALING
+        for r in self.__radar:
+            r.center_x = (r.column * size + size / 2) + self.x

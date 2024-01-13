@@ -240,3 +240,7 @@ class Enemy(arcade.Sprite):
     def end_attack(self, x, y):
         for m in self.end_move():
             yield m
+
+    @property
+    def missiles(self):
+        return self.__missiles

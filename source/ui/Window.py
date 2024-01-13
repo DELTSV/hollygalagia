@@ -26,7 +26,7 @@ class Window(arcade.Window):
         self.__pause = False
 
     def setup(self):
-        self.__player = Agent(self.__enemy)
+        self.__player = Agent(self.__enemy,  [(-2, 1), (-1, 2), (0, 3), (1, 2), (2, 1)])
 
     def start(self):
         self.run()

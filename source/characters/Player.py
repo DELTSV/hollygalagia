@@ -84,13 +84,13 @@ class Player:
         for m in self.missiles:
             m.draw(pixelated=True)
 
-    def move_left(self):
+    def move_left(self) -> bool:
         if not self.__killed and self.x > 0:
             self.x -= PLAYER_SPEED
             return True
         return False
 
-    def move_right(self, map_max: int):
+    def move_right(self, map_max: int) -> bool:
         if not self.__killed and self.x < map_max - CHAR_SPRITE_SIZE - PLAYER_SPEED:
             self.x += PLAYER_SPEED
             return True

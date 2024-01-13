@@ -12,7 +12,7 @@ KILL = 100
 DEATH = -1_000
 WIN = 10_000
 LOOSE = -10_000
-OUT_MAP = -1_000
+OUT_MAP = -1_000_000
 
 MOVE_LEFT = 0
 MOVE_RIGHT = 1
@@ -105,16 +105,20 @@ class Agent(Player):
         return len(arcade.check_for_collision_with_list(target, self.enemy_list)) != 0
 
     def move_left(self) -> bool:
-        for s in self.__radar:
-            s.center_x -= PLAYER_SPEED
-        self.__lidar.x -= PLAYER_SPEED
-        return super().move_left()
+        can_move = super().move_left()
+        if can_move:
+            for s in self.__radar:
+                s.center_x -= PLAYER_SPEED
+            self.__lidar.x -= PLAYER_SPEED
+        return can_move
 
     def move_right(self, map_max: int) -> bool:
-        for s in self.__radar:
-            s.center_x += PLAYER_SPEED
-        self.__lidar.x += PLAYER_SPEED
-        return super().move_right(map_max)
+        can_move = super().move_right(map_max)
+        if can_move:
+            for s in self.__radar:
+                s.center_x += PLAYER_SPEED
+            self.__lidar.x += PLAYER_SPEED
+        return can_move
 
     def update(self):
         super().update()

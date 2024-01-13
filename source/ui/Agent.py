@@ -56,10 +56,11 @@ class Agent(Player):
                 for i in range(0, len(index)):
                     key += radar_state[i][index[i]]
                 for s in STATE:
-                    key2 = key + tuple([s])
-                    self.__qtable[key2] = {}
-                    for a in ACTIONS:
-                        self.__qtable[key2][a] = 0.0
+                    for i in range(0, 3):
+                        key2 = key + (s, i)
+                        self.__qtable[key2] = {}
+                        for a in ACTIONS:
+                            self.__qtable[key2][a] = 0.0
                 increment(index, len(STATE))
                 if max(index) == 0:
                     done = True
@@ -76,7 +77,7 @@ class Agent(Player):
         return action
 
     def get_state(self):
-        return self.get_radar_data() + tuple([self.__lidar.detect_nearest_object()])
+        return self.get_radar_data() + (self.__lidar.detect_nearest_object(), len(self.missiles))
 
     def __create_radar_sprite(self, line: int, column: int) -> arcade.Sprite:
         size = CHAR_SPRITE_SIZE * SPRITE_SCALING
@@ -129,7 +130,7 @@ class Agent(Player):
 
     def do(self, killed: bool, enemy_killed: int, win_or_loose: bool | None):
         action = self.get_best_action()
-        reward = 0
+        reward = -10
         old_state = self.get_state()
         if action == MOVE_LEFT:
             if not self.move_left():
@@ -149,8 +150,8 @@ class Agent(Player):
             else:
                 reward += LOOSE
         current = self.__qtable[old_state][action]
-        alpha = 0.5
-        gamma = 0.5
+        alpha = 1.5
+        gamma = 0.8
         next_max = self.arg_max(self.__qtable[self.get_state()])
         self.__score += reward
         self.__qtable[old_state][action] = current + alpha * (reward + gamma * next_max - current)

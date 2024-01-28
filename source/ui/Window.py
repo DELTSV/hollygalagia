@@ -1,5 +1,5 @@
 import os
-# os.environ["ARCADE_HEADLESS"] = "False"
+# os.environ["ARCADE_HEADLESS"] = "True"
 
 import arcade
 
@@ -9,24 +9,29 @@ from source.characters.Goei import Goei
 from source.characters.Zako import Zako
 from source.constant import WINDOW_WIDTH, WINDOW_HEIGHT, BASE_LINE, CHAR_SPRITE_SIZE, SPRITE_SCALING, CENTER, \
     SPRITE_SPACING
-from source.ui.Agent import Agent
+from source.effect.Star import Star
+from source.ui.Agent import Agent, KILL
+from source.ui.ScoreBoard import ScoreBoard
 
 
 class Window(arcade.Window):
     def __init__(self):
-        super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, "Galaga")
+        super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, "HollyGalagia")
         self.__player: Agent | None = None
         self.__actions: [int] = []
         self.__effects = arcade.SpriteList()
         self.__enemy = EnemyList()
         self.__time = 0
-        self.test = 0
         self.__waiting = self.formation()
         self.__wave = 0
         self.__pause = False
+        self.__stars: [Star] = []
+        self.__scoreboard = ScoreBoard()
 
     def setup(self):
         self.__player = Agent(self.__enemy,  [(-2, 1), (-1, 2), (0, 3), (1, 2), (2, 1)])
+        for i in range(50):
+            self.__stars.append(Star())
 
     def start(self):
         self.run()
@@ -97,6 +102,8 @@ class Window(arcade.Window):
         return CENTER - ((CHAR_SPRITE_SIZE + SPRITE_SPACING) * SPRITE_SCALING * spacing_direction / 2) + (CHAR_SPRITE_SIZE + SPRITE_SPACING) * SPRITE_SCALING * col
 
     def on_update(self, delta_time):
+        for s in self.__stars:
+            s.on_update()
         if len(self.__actions) > 0:
             if self.__player.killed and 65293 in self.__actions:
                 self.__player.revive()
@@ -105,15 +112,15 @@ class Window(arcade.Window):
             if 65307 in self.__actions:
                 self.__player.save()
                 self.close()
-        #     moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
-        #     if len(moves) > 0 and moves[-1] == 65361:
-        #         self.__player.move_left()
-        #     elif len(moves) > 0 and moves[-1] == 65363:
-        #         self.__player.move_right(self.width)
-        #     if 32 in self.__actions:
-        #         self.__player.shoot()
-        #     if 101 in self.__actions:
-        #         self.__effects.append(self.__player.explode())
+            # moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
+            # if len(moves) > 0 and moves[-1] == 65361:
+            #     self.__player.move_left()
+            # elif len(moves) > 0 and moves[-1] == 65363:
+            #     self.__player.move_right(self.width)
+            # if 32 in self.__actions:
+            #     self.__player.shoot()
+            # if 101 in self.__actions:
+            #     self.__effects.append(self.__player.explode())
         if self.__pause:
             return
         self.__time += delta_time
@@ -151,16 +158,31 @@ class Window(arcade.Window):
             self.__effects.append(explosion)
         self.__effects.update()
         self.__enemy.update()
-        if self.__enemy.total_enemies_spawned > 0 and self.__enemy.total() == 0:
-            win_or_loose = True
-            self.__pause = True
+        self.__scoreboard.update()
+        if self.__enemy.total_enemies_spawned > 0 and self.__enemy.total() == 0 and self.__wave > 5:
+            if self.__scoreboard.level < 256:
+                self.__new_level()
+            else:
+                win_or_loose = True
+            # self.__pause = True
+        if self.__player.life == 0:
+            win_or_loose = False
         self.__player.do(killed, enemy_killed, win_or_loose)
+
+    def __new_level(self):
+        self.__wave = 0
+        self.__enemy = EnemyList()
+        self.__scoreboard.next_level()
+        self.__waiting = self.formation()
 
     def on_draw(self):
         self.clear()
         self.__player.draw()
         self.__effects.draw(pixelated=True)
         self.__enemy.draw(pixelated=True)
+        for s in self.__stars:
+            s.on_draw()
+        self.__scoreboard.draw(pixelated=True)
 
     def on_key_press(self, symbol: int, modifiers: int):
         self.__actions.append(symbol)
@@ -178,6 +200,7 @@ class Window(arcade.Window):
                 explosion = enemy.take_damage()
                 if explosion is not None:
                     tot += 1
+                    self.__scoreboard.score += KILL
                     self.__effects.append(explosion)
                     enemy.remove_from_sprite_lists()
             if len(hit_list) != 0:

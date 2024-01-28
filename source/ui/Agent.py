@@ -154,7 +154,7 @@ class Agent(Player):
             else:
                 reward += LOOSE
         current = self.__qtable[old_state][action]
-        alpha = 1.5
+        alpha = 1.1
         gamma = 0.8
         next_max = self.arg_max(self.__qtable[self.get_state()])
         self.__score += reward

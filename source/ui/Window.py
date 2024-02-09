@@ -32,7 +32,7 @@ class Window(arcade.Window):
 
     def setup(self):
         self.__player = Agent(self.__enemy,  [(-2, 1), (-1, 2), (0, 3), (1, 2), (2, 1)])
-        for i in range(50):
+        for i in range(100):
             self.__stars.append(Star())
 
     def start(self):
@@ -180,7 +180,7 @@ class Window(arcade.Window):
             # self.__pause = True
         if self.__player.life == 0:
             win_or_loose = False
-        # self.__player.do(killed, enemy_killed, win_or_loose)
+        self.__player.do(killed, enemy_killed, win_or_loose)
 
     def __new_level(self):
         self.__wave = 0

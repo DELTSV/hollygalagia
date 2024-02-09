@@ -1,4 +1,6 @@
 import os
+import random
+
 # os.environ["ARCADE_HEADLESS"] = "True"
 
 import arcade
@@ -37,61 +39,73 @@ class Window(arcade.Window):
         self.run()
 
     def formation(self):
-        for i in range(0, 4):
-            yield Zako(
-                (self.get_col(1) if i % 2 == 0 else self.get_col(-1)),
-                (self.get_line(0) if i / 2 < 1 else self.get_line(1)),
-                1,
-                1,
-                True
-            )
-            yield Goei(
-                (self.get_col(1) if i % 2 == 0 else self.get_col(-1)),
-                (self.get_line(2) if i / 2 < 1 else self.get_line(3)),
-                1,
-                1,
-                False
-            )
+        enter = random.randint(1, 2)
+        alt = random.randint(0, 1) == 1
+        for i in range(0, 8):
+            if i % 2 == 0:
+                yield Zako(
+                    (self.get_col(-1) if i % 4 == 0 else self.get_col(1)),
+                    (self.get_line(1) if i < 4 else self.get_line(0)),
+                    self.__scoreboard.level,
+                    enter,
+                    alt
+                )
+            else:
+                yield Goei(
+                    (self.get_col(-1) if i % 4 == 1 else self.get_col(1)),
+                    (self.get_line(2) if i > 4 else self.get_line(3)),
+                    self.__scoreboard.level,
+                    enter,
+                    alt
+                )
+        enter = random.randint(1, 2)
+        alt = random.randint(0, 1) == 1
         for i in range(0, 8):
             if i % 2 == 0:
                 yield GalagaBoss(
                     self.get_col((1 if i < 4 else 2) * (1 if i % 4 == 0 else -1)),
                     self.get_line(4),
-                    1,
-                    2,
-                    True
+                    self.__scoreboard.level,
+                    enter,
+                    alt
                 )
             else:
                 yield Goei(
                     self.get_col(-2 if (i - 1) % 4 == 0 else 2),
                     (self.get_line(2) if i / 4 < 1 else self.get_line(3)),
-                    1,
-                    2,
-                    True
+                    self.__scoreboard.level,
+                    enter,
+                    alt
                 )
+        enter = random.randint(1, 2)
+        alt = random.randint(0, 1) == 1
         for i in range(0, 8):
             yield Goei(
                 self.get_col((3 if i < 4 else 4) * (1 if i % 2 == 0 else -1)),
                 (self.get_line(2) if i % 4 < 2 else self.get_line(3)),
-                1,
-                2,
-                False
+                self.__scoreboard.level,
+                enter,
+                alt
             )
+        enter = random.randint(1, 2)
+        alt = random.randint(0, 1) == 1
         for i in range(0, 8):
             yield Zako(
                 self.get_col((2 if i < 4 else 3) * (1 if i % 2 == 0 else -1)),
                 (self.get_line(0) if i % 4 < 2 else self.get_line(1)),
-                1,
-                1,
-                True
+                self.__scoreboard.level,
+                enter,
+                alt
             )
+        enter = random.randint(1, 2)
+        alt = random.randint(0, 1) == 1
         for i in range(0, 8):
             yield Zako(
                 self.get_col((4 if i < 4 else 5) * (1 if i % 2 == 0 else -1)),
                 (self.get_line(0) if i % 4 < 2 else self.get_line(1)),
-                1,
-                1,
-                True
+                self.__scoreboard.level,
+                enter,
+                alt
             )
 
     def get_line(self, line: int):
@@ -128,7 +142,6 @@ class Window(arcade.Window):
             self.__time = 0
             try:
                 if self.__wave == 0 and self.__enemy.total_enemies_spawned < 8:
-                    self.__enemy.append(next(self.__waiting))
                     self.__enemy.append(next(self.__waiting))
                 elif self.__wave == 1 and self.__enemy.total_enemies_spawned < 16:
                     self.__enemy.append(next(self.__waiting))
@@ -167,7 +180,7 @@ class Window(arcade.Window):
             # self.__pause = True
         if self.__player.life == 0:
             win_or_loose = False
-        self.__player.do(killed, enemy_killed, win_or_loose)
+        # self.__player.do(killed, enemy_killed, win_or_loose)
 
     def __new_level(self):
         self.__wave = 0

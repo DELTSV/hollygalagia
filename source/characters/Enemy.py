@@ -244,3 +244,7 @@ class Enemy(arcade.Sprite):
     @property
     def missiles(self):
         return self.__missiles
+
+    @property
+    def idle(self):
+        return self.__idle

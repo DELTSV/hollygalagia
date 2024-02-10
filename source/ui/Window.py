@@ -125,15 +125,15 @@ class Window(arcade.Window):
             if 65307 in self.__actions:
                 self.__player.save()
                 self.close()
-            moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
-            if len(moves) > 0 and moves[-1] == 65361:
-                self.__player.move_left()
-            elif len(moves) > 0 and moves[-1] == 65363:
-                self.__player.move_right(self.width)
-            if 32 in self.__actions:
-                self.__player.shoot()
-            if 101 in self.__actions:
-                self.__effects.append(self.__player.explode())
+            # moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
+            # if len(moves) > 0 and moves[-1] == 65361:
+            #     self.__player.move_left()
+            # elif len(moves) > 0 and moves[-1] == 65363:
+            #     self.__player.move_right(self.width)
+            # if 32 in self.__actions:
+            #     self.__player.shoot()
+            # if 101 in self.__actions:
+            #     self.__effects.append(self.__player.explode())
         if self.__pause:
             return
         self.__time += delta_time
@@ -181,7 +181,8 @@ class Window(arcade.Window):
             win_or_loose = False
         if win_or_loose is not None:
             self.__player.save()
-        # self.__player.do(killed, enemy_killed, win_or_loose)
+            self.close()
+        self.__player.do(killed, enemy_killed, win_or_loose)
 
     def __new_level(self):
         self.__wave = 0

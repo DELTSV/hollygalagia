@@ -32,6 +32,10 @@ def increment(index: [int], max: int):
         i += 1
 
 
+def format_radar(radars: [Radar]) -> str:
+    return "-".join(["{}:{}".format(r.column, r.line) for r in radars])
+
+
 class Agent(Player):
     def __init__(self, enemy_list: EnemyList, radar_position: [(int, int)], alpha, gamma):
         super().__init__(enemy_list)
@@ -162,15 +166,17 @@ class Agent(Player):
         self.__qtable[old_state][action] = current + self.__alpha * (reward + self.__gamma * next_max - current)
 
     def save(self):
-        with open("./qtable", 'w') as f:
+        filename = "./qtable-{}-{}-{}".format(self.__alpha, self.__gamma, format_radar(self.__radar))
+        with open(filename, 'w') as f:
             list = {}
             for k, v in self.__qtable.items():
                 list[k.__str__()] = v
             f.write(json.dumps(list))
 
     def load(self):
+        filename = "./qtable-{}-{}-{}".format(self.__alpha, self.__gamma, format_radar(self.__radar))
         try:
-            with open("./qtable", "r") as f:
+            with open(filename, "r") as f:
                 tmp = json.loads(f.read())
                 final = {}
                 for k, v in tmp.items():

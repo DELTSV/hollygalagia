@@ -1,3 +1,5 @@
+import time
+
 from source.ui.Window import Window
 
 import matplotlib.pyplot as plt
@@ -21,6 +23,7 @@ for radars in radarss:
     for (alpha, gamma) in alphas_gammas:
         window = Window(alpha, gamma, radars)
         window.setup()
+        time.sleep(0.5)
         window.run()
         plt.plot(window.player.history)
         plt.show()

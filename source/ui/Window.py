@@ -17,12 +17,12 @@ from source.ui.ScoreBoard import ScoreBoard
 
 
 class Window(arcade.Window):
-    def __init__(self):
+    def __init__(self, alpha, gamma, radars):
         super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, "HollyGalagia")
-        self.__player: Agent | None = None
+        self.__enemy = EnemyList()
+        self.__player: Agent = Agent(self.__enemy, radars, alpha, gamma)
         self.__actions: [int] = []
         self.__effects = arcade.SpriteList()
-        self.__enemy = EnemyList()
         self.__time = 0
         self.__waiting = self.formation()
         self.__wave = 0
@@ -31,7 +31,6 @@ class Window(arcade.Window):
         self.__scoreboard = ScoreBoard()
 
     def setup(self):
-        self.__player = Agent(self.__enemy,  [(-2, 1), (-1, 2), (0, 3), (1, 2), (2, 1)])
         for i in range(100):
             self.__stars.append(Star())
 
@@ -126,15 +125,15 @@ class Window(arcade.Window):
             if 65307 in self.__actions:
                 self.__player.save()
                 self.close()
-            # moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
-            # if len(moves) > 0 and moves[-1] == 65361:
-            #     self.__player.move_left()
-            # elif len(moves) > 0 and moves[-1] == 65363:
-            #     self.__player.move_right(self.width)
-            # if 32 in self.__actions:
-            #     self.__player.shoot()
-            # if 101 in self.__actions:
-            #     self.__effects.append(self.__player.explode())
+            moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
+            if len(moves) > 0 and moves[-1] == 65361:
+                self.__player.move_left()
+            elif len(moves) > 0 and moves[-1] == 65363:
+                self.__player.move_right(self.width)
+            if 32 in self.__actions:
+                self.__player.shoot()
+            if 101 in self.__actions:
+                self.__effects.append(self.__player.explode())
         if self.__pause:
             return
         self.__time += delta_time
@@ -180,7 +179,9 @@ class Window(arcade.Window):
             # self.__pause = True
         if self.__player.life == 0:
             win_or_loose = False
-        self.__player.do(killed, enemy_killed, win_or_loose)
+        if win_or_loose is not None:
+            self.__player.save()
+        # self.__player.do(killed, enemy_killed, win_or_loose)
 
     def __new_level(self):
         self.__wave = 0

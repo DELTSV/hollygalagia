@@ -5,6 +5,7 @@ import arcade
 from source.characters import EnemyList
 from source.characters.Player import Player
 from source.constant import WINDOW_WIDTH, CHAR_SPRITE_SIZE, SPRITE_SCALING, PLAYER_SPEED
+from source.effect.PlayerExplosion import PlayerExplosion
 from source.ui.Lidar import Lidar
 from source.ui.Radar import Radar, STATE
 
@@ -32,9 +33,11 @@ def increment(index: [int], max: int):
 
 
 class Agent(Player):
-    def __init__(self, enemy_list: EnemyList, radar_position: [(int, int)]):
+    def __init__(self, enemy_list: EnemyList, radar_position: [(int, int)], alpha, gamma):
         super().__init__(enemy_list)
         self.__score = -1
+        self.__alpha = alpha
+        self.__gamma = gamma
         self.__qtable = {}
         self.__radar = arcade.SpriteList()
         self.__lidar = Lidar(self.x + CHAR_SPRITE_SIZE / 2 * SPRITE_SCALING, self.enemy_list)
@@ -154,11 +157,9 @@ class Agent(Player):
             else:
                 reward += LOOSE
         current = self.__qtable[old_state][action]
-        alpha = 1.1
-        gamma = 0.8
         next_max = self.arg_max(self.__qtable[self.get_state()])
         self.__score += reward
-        self.__qtable[old_state][action] = current + alpha * (reward + gamma * next_max - current)
+        self.__qtable[old_state][action] = current + self.__alpha * (reward + self.__gamma * next_max - current)
 
     def save(self):
         with open("./qtable", 'w') as f:
@@ -188,3 +189,10 @@ class Agent(Player):
         size = CHAR_SPRITE_SIZE * SPRITE_SCALING
         for r in self.__radar:
             r.center_x = (r.column * size + size / 2) + self.x
+
+    def explode(self) -> PlayerExplosion:
+        value = super().explode()
+        self.__lidar.x = -1000
+        for r in self.__radar:
+            r.center_x = -1000
+        return value

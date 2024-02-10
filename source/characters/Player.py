@@ -23,10 +23,7 @@ class Player:
 
     @x.setter
     def x(self, value):
-        if value < 0:
-            self.__x = 0
-        else:
-            self.__x = int(value)
+        self.__x = int(value)
 
     @property
     def y(self):

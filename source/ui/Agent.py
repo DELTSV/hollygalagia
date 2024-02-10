@@ -33,7 +33,7 @@ def increment(index: [int], max: int):
 
 
 def format_radar(radars: [Radar]) -> str:
-    return "-".join(["{}:{}".format(r.column, r.line) for r in radars])
+    return "-".join(["{}_{}".format(r.column, r.line) for r in radars])
 
 
 class Agent(Player):

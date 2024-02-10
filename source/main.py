@@ -17,8 +17,6 @@ alphas_gammas = [
     (0.7, 0.9)
 ]
 
-processes = []
-
 for radars in radarss:
     for (alpha, gamma) in alphas_gammas:
         window = Window(alpha, gamma, radars)

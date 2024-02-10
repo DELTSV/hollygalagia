@@ -10,7 +10,7 @@ from source.characters.GalagaBoss import GalagaBoss
 from source.characters.Goei import Goei
 from source.characters.Zako import Zako
 from source.constant import WINDOW_WIDTH, WINDOW_HEIGHT, BASE_LINE, CHAR_SPRITE_SIZE, SPRITE_SCALING, CENTER, \
-    SPRITE_SPACING
+    SPRITE_SPACING, SPRITE_FILE, PLAYER_SPRITE_ORIGIN
 from source.effect.Star import Star
 from source.ui.Agent import Agent, KILL
 from source.ui.ScoreBoard import ScoreBoard
@@ -29,8 +29,10 @@ class Window(arcade.Window):
         self.__pause = False
         self.__stars: [Star] = []
         self.__scoreboard = ScoreBoard()
+        self.__lives = arcade.SpriteList()
 
     def setup(self):
+        self.create_lives()
         for i in range(100):
             self.__stars.append(Star())
 
@@ -115,6 +117,7 @@ class Window(arcade.Window):
         return CENTER - ((CHAR_SPRITE_SIZE + SPRITE_SPACING) * SPRITE_SCALING * spacing_direction / 2) + (CHAR_SPRITE_SIZE + SPRITE_SPACING) * SPRITE_SCALING * col
 
     def on_update(self, delta_time):
+        self.__lives.update()
         for s in self.__stars:
             s.on_update()
         if len(self.__actions) > 0:
@@ -166,6 +169,7 @@ class Window(arcade.Window):
         explosion = self.__enemy.detect_hit_with_player(self.__player)
         self.__player.update()
         if explosion is not None:
+            self.create_lives()
             killed = True
             self.__effects.append(explosion)
         self.__effects.update()
@@ -192,6 +196,7 @@ class Window(arcade.Window):
 
     def on_draw(self):
         self.clear()
+        self.__lives.draw(pixelated=True)
         self.__player.draw()
         self.__effects.draw(pixelated=True)
         self.__enemy.draw(pixelated=True)
@@ -221,3 +226,19 @@ class Window(arcade.Window):
             if len(hit_list) != 0:
                 m.remove_from_sprite_lists()
         return tot
+
+    def create_lives(self):
+        self.__lives.clear()
+        for i in range(0, self.__player.life):
+            s = arcade.Sprite(
+                SPRITE_FILE,
+                image_x=PLAYER_SPRITE_ORIGIN[0] + 18 * 6,
+                image_y=PLAYER_SPRITE_ORIGIN[1],
+                image_width=CHAR_SPRITE_SIZE,
+                image_height=CHAR_SPRITE_SIZE,
+                hit_box_algorithm='Simple',
+                scale=SPRITE_SCALING,
+                center_x=i * CHAR_SPRITE_SIZE * SPRITE_SCALING + (CHAR_SPRITE_SIZE * SPRITE_SCALING / 2),
+                center_y=CHAR_SPRITE_SIZE * SPRITE_SCALING / 2
+            )
+            self.__lives.append(s)

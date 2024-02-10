@@ -242,3 +242,7 @@ class Window(arcade.Window):
                 center_y=CHAR_SPRITE_SIZE * SPRITE_SCALING / 2
             )
             self.__lives.append(s)
+
+    @property
+    def player(self):
+        return self.__player

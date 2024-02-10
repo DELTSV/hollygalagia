@@ -45,6 +45,7 @@ class Agent(Player):
         self.__qtable = {}
         self.__radar = arcade.SpriteList()
         self.__lidar = Lidar(self.x + CHAR_SPRITE_SIZE / 2 * SPRITE_SCALING, self.enemy_list)
+        self.__history = []
         for x, y in radar_position:
             self.__radar.append(Radar(x, y, self.x, self.y))
         tmp = self.load()
@@ -164,6 +165,7 @@ class Agent(Player):
         next_max = self.arg_max(self.__qtable[self.get_state()])
         self.__score += reward
         self.__qtable[old_state][action] = current + self.__alpha * (reward + self.__gamma * next_max - current)
+        self.__history.append(self.__score)
 
     def save(self):
         filename = "./qtable-{}-{}-{}".format(self.__alpha, self.__gamma, format_radar(self.__radar))
@@ -202,3 +204,7 @@ class Agent(Player):
         for r in self.__radar:
             r.center_x = -1000
         return value
+
+    @property
+    def history(self):
+        return self.__history

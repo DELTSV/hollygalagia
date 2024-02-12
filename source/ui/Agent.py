@@ -9,11 +9,14 @@ from source.effect.PlayerExplosion import PlayerExplosion
 from source.ui.Lidar import Lidar
 from source.ui.Radar import Radar, STATE
 
-KILL = 100
-DEATH = -1_000
-WIN = 10_000
-LOOSE = -10_000
+DEFAULT = -20
+KILL = 1000
+DEATH = -10_000
+WIN = 10_0000
+LOOSE = -100_000
 OUT_MAP = -1_000_000
+FIRED = DEFAULT
+MAX_MISSILE = -1_000
 
 MOVE_LEFT = 0
 MOVE_RIGHT = 1
@@ -39,7 +42,7 @@ def format_radar(radars: [Radar]) -> str:
 class Agent(Player):
     def __init__(self, enemy_list: EnemyList, radar_position: [(int, int)], alpha, gamma, history):
         super().__init__(enemy_list)
-        self.__score = -1
+        self.__score = 0
         self.__alpha = alpha
         self.__gamma = gamma
         self.__qtable = {}
@@ -142,15 +145,20 @@ class Agent(Player):
 
     def do(self, killed: bool, enemy_killed: int, win_or_loose: bool | None):
         action = self.get_best_action()
-        reward = -10
+        reward = DEFAULT
         old_state = self.get_state()
         if action == MOVE_LEFT:
             if not self.move_left():
-                reward += OUT_MAP
+                pass
+            #     reward += OUT_MAP
         if action == MOVE_RIGHT:
             if not self.move_right(WINDOW_WIDTH):
-                reward += OUT_MAP
+                pass
+                # reward += OUT_MAP
         if action == FIRE:
+            if len(self.missiles) == 2:
+                reward += MAX_MISSILE
+            reward += DEFAULT
             self.shoot()
         if killed:
             reward += DEATH
@@ -166,6 +174,7 @@ class Agent(Player):
         self.__score += reward
         self.__qtable[old_state][action] = current + self.__alpha * (reward + self.__gamma * next_max - current)
         self.__history.append(self.__score)
+        return reward
 
     def save(self):
         filename = "./qtable-{}-{}-{}".format(self.__alpha, self.__gamma, format_radar(self.__radar))

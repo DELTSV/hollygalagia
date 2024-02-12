@@ -71,10 +71,16 @@ class ScoreBoard(arcade.SpriteList):
             self.append(Char(0, x, y))
             self.append(Char(0, x - TEXT_SIZE * SPRITE_SCALING, y))
         else:
+            negative = False
+            if score < 0:
+                score = -score
+                negative = True
             while score > 0:
                 self.append(Char(score % 10, x, y))
                 x -= TEXT_SIZE * SPRITE_SCALING
                 score //= 10
+            if negative:
+                self.append(Char(36, x, y))
 
     def __load_fifty(self, x: int, y: int):
         return self.__load_badges(BADGE_ORIGIN[0] + 74, BADGE_ORIGIN[1], True, x, y)

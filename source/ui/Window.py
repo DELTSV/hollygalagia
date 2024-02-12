@@ -186,7 +186,7 @@ class Window(arcade.Window):
         if win_or_loose is not None:
             self.__player.save()
             self.close()
-        self.__player.do(killed, enemy_killed, win_or_loose)
+        self.__scoreboard.score += self.__player.do(killed, enemy_killed, win_or_loose)
 
     def __new_level(self):
         self.__wave = 0
@@ -220,7 +220,6 @@ class Window(arcade.Window):
                 explosion = enemy.take_damage()
                 if explosion is not None:
                     tot += 1
-                    self.__scoreboard.score += KILL
                     self.__effects.append(explosion)
                     enemy.remove_from_sprite_lists()
             if len(hit_list) != 0:
@@ -228,6 +227,7 @@ class Window(arcade.Window):
         return tot
 
     def create_lives(self):
+        self.clear()
         self.__lives.clear()
         for i in range(0, self.__player.life):
             s = arcade.Sprite(

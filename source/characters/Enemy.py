@@ -26,7 +26,7 @@ class Enemy(arcade.Sprite):
             self.__positions = self.enter_2(alt)
         self.__idle = (x, y)
         self.is_idle = False
-        self.__difficulty = difficulty
+        self.__difficulty = difficulty * 4
         self.__missiles = arcade.SpriteList()
         self.can_attack = False
 

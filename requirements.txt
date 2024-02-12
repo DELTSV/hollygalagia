@@ -1,0 +1,2 @@
+arcade >= 2.6.17
+matplotlib >= 3.8.2

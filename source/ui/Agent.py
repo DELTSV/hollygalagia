@@ -133,12 +133,14 @@ class Agent(Player):
 
     def update(self):
         super().update()
-        self.__radar.update()
+        if not self.killed:
+            self.__radar.update()
 
     def draw(self):
         super().draw()
-        self.__radar.draw()
-        self.__lidar.draw()
+        if not self.killed:
+            self.__radar.draw()
+            self.__lidar.draw()
 
     def arg_max(self, table):
         return max(table, key=table.get)
@@ -149,12 +151,10 @@ class Agent(Player):
         old_state = self.get_state()
         if action == MOVE_LEFT:
             if not self.move_left():
-                pass
-            #     reward += OUT_MAP
+                reward += OUT_MAP
         if action == MOVE_RIGHT:
             if not self.move_right(WINDOW_WIDTH):
-                pass
-                # reward += OUT_MAP
+                reward += OUT_MAP
         if action == FIRE:
             if len(self.missiles) == 2:
                 reward += MAX_MISSILE
@@ -206,13 +206,6 @@ class Agent(Player):
         size = CHAR_SPRITE_SIZE * SPRITE_SCALING
         for r in self.__radar:
             r.center_x = (r.column * size + size / 2) + self.x
-
-    def explode(self) -> PlayerExplosion:
-        value = super().explode()
-        self.__lidar.x = -1000
-        for r in self.__radar:
-            r.center_x = -1000
-        return value
 
     @property
     def history(self):

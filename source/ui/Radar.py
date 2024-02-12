@@ -1,13 +1,14 @@
 import arcade
 
-from source.constant import SPRITE_SCALING, CHAR_SPRITE_SIZE
+from source.constant import SPRITE_SCALING, CHAR_SPRITE_SIZE, WINDOW_WIDTH
 
 EMPTY = 0
 ENEMY = 1
 MISSILE = 2
 ENEMY_AND_MISSILE = 3
+NONE = 4
 
-STATE = [EMPTY, ENEMY, MISSILE, ENEMY_AND_MISSILE]
+STATE = [EMPTY, ENEMY, MISSILE, ENEMY_AND_MISSILE, NONE]
 
 
 class Radar(arcade.Sprite):
@@ -25,6 +26,8 @@ class Radar(arcade.Sprite):
         self.__column = column
 
     def get_data(self, enemies, missiles) -> tuple:
+        if not (0 < self.center_x < WINDOW_WIDTH):
+            return self.__line, self.__column, NONE
         enemy_collisions = arcade.check_for_collision_with_list(self, enemies)
         missile_collision = arcade.check_for_collision_with_lists(self, missiles)
         enemy = len(enemy_collisions) > 0

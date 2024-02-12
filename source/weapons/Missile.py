@@ -11,7 +11,7 @@ class Missile(arcade.Sprite):
             image_y=PLAYER_MISSILE_ORIGIN[1],
             image_width=MISSILE_SPRITE_SIZE,
             image_height=MISSILE_SPRITE_SIZE,
-            hit_box_algorithm=None,
+            hit_box_algorithm='Simple',
             scale=SPRITE_SCALING,
             center_x=x + MISSILE_SPRITE_SIZE,
             center_y=y + MISSILE_SPRITE_SIZE

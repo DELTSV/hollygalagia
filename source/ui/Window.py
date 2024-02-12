@@ -52,7 +52,7 @@ class Window(arcade.Window):
         self.__wave = 0
         self.__pause = False
         self.__stars: [Star] = []
-        self.__scoreboard = ScoreBoard()
+        self.__scoreboard = ScoreBoard(len(history) + 1)
         self.__lives = arcade.SpriteList()
 
     def reset(self):
@@ -70,7 +70,7 @@ class Window(arcade.Window):
         self.__wave = 0
         self.__pause = False
         self.__stars.clear()
-        self.__scoreboard = ScoreBoard()
+        self.__scoreboard = ScoreBoard(len(self.__history) + 1)
         self.__lives.clear()
         self.setup()
 

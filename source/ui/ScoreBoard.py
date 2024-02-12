@@ -6,7 +6,7 @@ from source.ui.Char import Char
 
 
 class ScoreBoard(arcade.SpriteList):
-    def __init__(self):
+    def __init__(self, iteration):
         super().__init__()
         self.__level = 1
         self.__fifty = 0
@@ -16,6 +16,7 @@ class ScoreBoard(arcade.SpriteList):
         self.__five = False
         self.__one = 1
         self.__score = 0
+        self.__iteration = iteration
         self.display_badges()
         self.display_score()
 
@@ -80,7 +81,25 @@ class ScoreBoard(arcade.SpriteList):
                 x -= TEXT_SIZE * SPRITE_SCALING
                 score //= 10
             if negative:
-                self.append(Char(36, x, y))
+                self.append(Char(37, x, y))
+        text = "score"
+        self.display_text(y + TEXT_SIZE * SPRITE_SCALING, WINDOW_WIDTH - len(text) * TEXT_SIZE * SPRITE_SCALING, text)
+        iteration = self.__iteration
+        x = WINDOW_WIDTH - (TEXT_SIZE * SPRITE_SCALING)
+        y += TEXT_SIZE * SPRITE_SCALING * 2
+        while iteration > 0:
+            self.append(Char(iteration % 10, x, y))
+            x -= TEXT_SIZE * SPRITE_SCALING
+            iteration //= 10
+        text = "iteration"
+        self.display_text(y, x - len(text) * TEXT_SIZE * SPRITE_SCALING, text)
+
+    def display_text(self, y, start, text: str):
+        x = start
+        for c in text.upper():
+            self.append(Char(ord(c) - 55, x, y))
+            x += TEXT_SIZE * SPRITE_SCALING
+
 
     def __load_fifty(self, x: int, y: int):
         return self.__load_badges(BADGE_ORIGIN[0] + 74, BADGE_ORIGIN[1], True, x, y)

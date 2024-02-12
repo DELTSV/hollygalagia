@@ -1,7 +1,7 @@
 import os
 import random
 
-os.environ["ARCADE_HEADLESS"] = "True"
+# os.environ["ARCADE_HEADLESS"] = "True"
 
 import arcade
 

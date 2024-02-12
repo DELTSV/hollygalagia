@@ -3,7 +3,7 @@ import sys
 
 from source.ui.Window import Window
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 radarss = [
     [(-2, 1), (-1, 2), (0, 3), (1, 2), (2, 1)],
@@ -42,7 +42,5 @@ while True:
     window = Window(alpha, gamma, radars, history)
     window.setup()
     window.run()
-    plt.plot(window.player.history)
-    plt.show()
-    if min(history) < -4_000_000:
-        history.clear()
+    # plt.plot(window.player.history)
+    # plt.show()

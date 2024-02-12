@@ -146,17 +146,14 @@ class Agent(Player):
         old_state = self.get_state()
         if action == MOVE_LEFT:
             if not self.move_left():
-                print("OUT1")
                 reward += OUT_MAP
         if action == MOVE_RIGHT:
             if not self.move_right(WINDOW_WIDTH):
-                print("OUT2")
                 reward += OUT_MAP
         if action == FIRE:
             reward += DEFAULT
             self.shoot()
         if killed:
-            print("LOOSE")
             reward += LOOSE
             self.revive()
         reward += KILL * enemy_killed

@@ -1,4 +1,5 @@
 .idea
 source
 qtable*
+history*
 __pycache__/

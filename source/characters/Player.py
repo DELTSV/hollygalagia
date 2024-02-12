@@ -5,6 +5,7 @@ from source.effect.PlayerExplosion import PlayerExplosion
 from source.constant import *
 from source.weapons.Missile import Missile
 
+MAX_MISSILE = 30
 
 class Player:
     def __init__(self, enemy_list: EnemyList):
@@ -13,9 +14,10 @@ class Player:
         self.__sprite = self.__get_sprite(6)
         self.missiles = arcade.SpriteList()
         self.__delay = 0
-        self.__life = 3
+        self.__life = 1
         self.__killed = False
         self.__enemy_list = enemy_list
+        self.__max_missiles = MAX_MISSILE
 
     @property
     def x(self):
@@ -95,13 +97,19 @@ class Player:
 
     def explode(self) -> PlayerExplosion:
         self.__killed = True
+        self.__life = 0
         return PlayerExplosion(self.x, self.y)
 
     def shoot(self):
         if not self.__killed and len(self.missiles) < 2 and self.__delay == 0:
+            self.__max_missiles -= 1
             self.missiles.append(Missile(self.x, self.y))
             self.__delay = 10
 
     @property
     def enemy_list(self) -> EnemyList:
         return self.__enemy_list
+
+    @property
+    def max_missiles(self):
+        return self.__max_missiles

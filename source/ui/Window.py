@@ -1,5 +1,8 @@
+import json
 import os
 import random
+
+from matplotlib import pyplot as plt
 
 # os.environ["ARCADE_HEADLESS"] = "True"
 
@@ -12,15 +15,36 @@ from source.characters.Zako import Zako
 from source.constant import WINDOW_WIDTH, WINDOW_HEIGHT, BASE_LINE, CHAR_SPRITE_SIZE, SPRITE_SCALING, CENTER, \
     SPRITE_SPACING, SPRITE_FILE, PLAYER_SPRITE_ORIGIN
 from source.effect.Star import Star
-from source.ui.Agent import Agent, KILL
+from source.ui.Agent import Agent
 from source.ui.ScoreBoard import ScoreBoard
 
 
+def format_tuple(tuple):
+    return "-".join(["{}_{}".format(t1, t2) for t1, t2 in tuple])
+
+def load(alpha, gamma, radar):
+    filename = "./history-{}-{}-{}".format(alpha, gamma, format_tuple(radar))
+    try:
+        with open(filename, "r") as f:
+            return json.loads(f.read())
+    except FileNotFoundError:
+        return None
+
+def save(alpha, gamma, radar, history):
+    filename = "./history-{}-{}-{}".format(alpha, gamma, format_tuple(radar))
+    with open(filename, "w") as f:
+        f.write(json.dumps(history))
+
+
 class Window(arcade.Window):
-    def __init__(self, alpha, gamma, radars, history):
+    def __init__(self, history, alpha, gamma, radars):
         super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, "HollyGalagia")
+        self.__history = history
+        self.__alpha = alpha
+        self.__gamma = gamma
+        self.__radars = radars
         self.__enemy = EnemyList()
-        self.__player: Agent = Agent(self.__enemy, radars, alpha, gamma, history)
+        self.__player: Agent = Agent(self.__enemy, self.__radars, self.__alpha, self.__gamma)
         self.__actions: [int] = []
         self.__effects = arcade.SpriteList()
         self.__time = 0
@@ -31,8 +55,28 @@ class Window(arcade.Window):
         self.__scoreboard = ScoreBoard()
         self.__lives = arcade.SpriteList()
 
+    def reset(self):
+        self.clear()
+        self.__history.append(self.__player.score)
+        plt.plot(self.__history)
+        plt.show()
+        save(self.__alpha, self.__gamma, self.__radars, self.__history)
+        self.__enemy = EnemyList()
+        self.__player = Agent(self.__enemy, self.__radars, self.__alpha, self.__gamma)
+        self.__actions.clear()
+        self.__effects.clear()
+        self.__time = 0
+        self.__waiting = self.formation()
+        self.__wave = 0
+        self.__pause = False
+        self.__stars.clear()
+        self.__scoreboard = ScoreBoard()
+        self.__lives.clear()
+        self.setup()
+
+
     def setup(self):
-        self.create_lives()
+        # self.create_lives()
         for i in range(100):
             self.__stars.append(Star())
 
@@ -127,7 +171,7 @@ class Window(arcade.Window):
                 self.__pause = False
             if 65307 in self.__actions:
                 self.__player.save()
-                self.close()
+                self.reset()
             # moves = list(filter(lambda key: key in [65361, 65363], self.__actions))
             # if len(moves) > 0 and moves[-1] == 65361:
             #     self.__player.move_left()
@@ -169,9 +213,12 @@ class Window(arcade.Window):
         explosion = self.__enemy.detect_hit_with_player(self.__player)
         self.__player.update()
         if explosion is not None:
-            self.create_lives()
+            # self.create_lives()
             killed = True
             self.__effects.append(explosion)
+        elif self.player.max_missiles == 0:
+            self.__effects.append(self.player.explode())
+            killed = True
         self.__effects.update()
         self.__enemy.update()
         self.__scoreboard.update()
@@ -183,10 +230,10 @@ class Window(arcade.Window):
             # self.__pause = True
         if self.__player.life == 0:
             win_or_loose = False
+        self.__scoreboard.score += self.__player.do(killed, enemy_killed, win_or_loose)
         if win_or_loose is not None:
             self.__player.save()
-            self.close()
-        self.__scoreboard.score += self.__player.do(killed, enemy_killed, win_or_loose)
+            self.reset()
 
     def __new_level(self):
         self.__wave = 0

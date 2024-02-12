@@ -5,18 +5,14 @@ import arcade
 from source.characters import EnemyList
 from source.characters.Player import Player
 from source.constant import WINDOW_WIDTH, CHAR_SPRITE_SIZE, SPRITE_SCALING, PLAYER_SPEED
-from source.effect.PlayerExplosion import PlayerExplosion
 from source.ui.Lidar import Lidar
 from source.ui.Radar import Radar, STATE
 
-DEFAULT = -20
-KILL = 1000
-DEATH = -10_000
-WIN = 10_0000
-LOOSE = -100_000
-OUT_MAP = -1_000_000
+DEFAULT = -1
+KILL = 100
+LOOSE = -1_000
+OUT_MAP = -1_000
 FIRED = DEFAULT
-MAX_MISSILE = -1_000
 
 MOVE_LEFT = 0
 MOVE_RIGHT = 1
@@ -40,7 +36,7 @@ def format_radar(radars: [Radar]) -> str:
 
 
 class Agent(Player):
-    def __init__(self, enemy_list: EnemyList, radar_position: [(int, int)], alpha, gamma, history):
+    def __init__(self, enemy_list: EnemyList, radar_position: [(int, int)], alpha, gamma):
         super().__init__(enemy_list)
         self.__score = 0
         self.__alpha = alpha
@@ -48,7 +44,6 @@ class Agent(Player):
         self.__qtable = {}
         self.__radar = arcade.SpriteList()
         self.__lidar = Lidar(self.x + CHAR_SPRITE_SIZE / 2 * SPRITE_SCALING, self.enemy_list)
-        self.__history = history
         for x, y in radar_position:
             self.__radar.append(Radar(x, y, self.x, self.y))
         tmp = self.load()
@@ -151,29 +146,29 @@ class Agent(Player):
         old_state = self.get_state()
         if action == MOVE_LEFT:
             if not self.move_left():
+                print("OUT1")
                 reward += OUT_MAP
         if action == MOVE_RIGHT:
             if not self.move_right(WINDOW_WIDTH):
+                print("OUT2")
                 reward += OUT_MAP
         if action == FIRE:
-            if len(self.missiles) == 2:
-                reward += MAX_MISSILE
             reward += DEFAULT
             self.shoot()
         if killed:
-            reward += DEATH
+            print("LOOSE")
+            reward += LOOSE
             self.revive()
         reward += KILL * enemy_killed
         if win_or_loose is not None:
             if win_or_loose:
-                reward += WIN
+                pass
             else:
                 reward += LOOSE
         current = self.__qtable[old_state][action]
         next_max = self.arg_max(self.__qtable[self.get_state()])
         self.__score += reward
         self.__qtable[old_state][action] = current + self.__alpha * (reward + self.__gamma * next_max - current)
-        self.__history.append(self.__score)
         return reward
 
     def save(self):
@@ -208,5 +203,5 @@ class Agent(Player):
             r.center_x = (r.column * size + size / 2) + self.x
 
     @property
-    def history(self):
-        return self.__history
+    def score(self):
+        return self.__score

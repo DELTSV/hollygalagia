@@ -1,7 +1,7 @@
 import arcade
 
 from source.constant import PLAYER_LINE, WINDOW_HEIGHT, CHAR_SPRITE_SIZE, MISSILE_SPRITE_SIZE
-from source.ui.Radar import EMPTY, ENEMY, MISSILE, ENEMY_AND_MISSILE
+from source.ui.Radar import EMPTY, COLLIDED
 
 
 class Lidar:
@@ -16,16 +16,12 @@ class Lidar:
         for e in self.__enemies:
             if e.center_x - CHAR_SPRITE_SIZE / 2 <= self.__x <= e.center_x + CHAR_SPRITE_SIZE / 2:
                 if e.center_y < nearest:
-                    obj = ENEMY
-                elif e.center_y == nearest and obj == MISSILE:
-                    obj = ENEMY_AND_MISSILE
+                    obj = COLLIDED
                 nearest = e.center_y
             for m in e.missiles:
                 if m.center_x - MISSILE_SPRITE_SIZE / 2 <= self.__x <= m.center_x + MISSILE_SPRITE_SIZE / 2:
                     if m.center_y < nearest:
-                        obj = MISSILE
-                    elif m.center_y == nearest and obj == ENEMY:
-                        obj = ENEMY_AND_MISSILE
+                        obj = COLLIDED
                     nearest = e.center_y
         return obj
 

@@ -7,6 +7,7 @@ from source.characters.Player import Player
 from source.constant import WINDOW_WIDTH, CHAR_SPRITE_SIZE, SPRITE_SCALING, PLAYER_SPEED
 from source.ui.Lidar import Lidar
 from source.ui.Radar import Radar, STATE
+from source.ui.ZoneRadar import ZoneRadar
 
 DEFAULT = -1
 KILL = 100
@@ -43,6 +44,9 @@ class Agent(Player):
         self.__gamma = gamma
         self.__qtable = {}
         self.__radar = arcade.SpriteList()
+        self.__zoneRadar = arcade.SpriteList()
+        self.__zoneRadar.append(ZoneRadar(-9, 9, self.x, self.y))
+        self.__zoneRadar.append(ZoneRadar(9, 9, self.x, self.y))
         self.__lidar = Lidar(self.x + CHAR_SPRITE_SIZE / 2 * SPRITE_SCALING, self.enemy_list)
         for x, y in radar_position:
             self.__radar.append(Radar(x, y, self.x, self.y))
@@ -62,11 +66,13 @@ class Agent(Player):
                 for i in range(0, len(index)):
                     key += radar_state[i][index[i]]
                 for s in STATE:
-                    for i in range(0, 3):
-                        key2 = key + (s, i)
-                        self.__qtable[key2] = {}
-                        for a in ACTIONS:
-                            self.__qtable[key2][a] = 0.0
+                    for zr1 in STATE:
+                        for zr2 in STATE:
+                            for i in range(0, 3):
+                                key2 = key + (zr1, zr2, s, i)
+                                self.__qtable[key2] = {}
+                                for a in ACTIONS:
+                                    self.__qtable[key2][a] = 0.0
                 increment(index, len(STATE))
                 if max(index) == 0:
                     done = True
@@ -103,6 +109,8 @@ class Agent(Player):
             missiles.append(e.missiles)
         for r in self.__radar:
             data += r.get_data(self.enemy_list, missiles)
+        for z in self.__zoneRadar:
+            data += z.get_data(self.enemy_list, missiles)
         return data
 
     def get_enemy_in_square_from_user(self, line: int, column: int):
@@ -115,6 +123,8 @@ class Agent(Player):
         if can_move:
             for s in self.__radar:
                 s.center_x -= PLAYER_SPEED
+            for s in self.__zoneRadar:
+                s.center_x -= PLAYER_SPEED
             self.__lidar.x -= PLAYER_SPEED
         return can_move
 
@@ -123,6 +133,8 @@ class Agent(Player):
         if can_move:
             for s in self.__radar:
                 s.center_x += PLAYER_SPEED
+            for s in self.__zoneRadar:
+                s.center_x += PLAYER_SPEED
             self.__lidar.x += PLAYER_SPEED
         return can_move
 
@@ -130,11 +142,13 @@ class Agent(Player):
         super().update()
         if not self.killed:
             self.__radar.update()
+            self.__zoneRadar.update()
 
     def draw(self):
         super().draw()
         if not self.killed:
             self.__radar.draw()
+            self.__zoneRadar.draw()
             self.__lidar.draw()
 
     def arg_max(self, table):
@@ -151,7 +165,6 @@ class Agent(Player):
             if not self.move_right(WINDOW_WIDTH):
                 reward += OUT_MAP
         if action == FIRE:
-            reward += DEFAULT
             self.shoot()
         if killed:
             reward += LOOSE

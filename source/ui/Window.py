@@ -48,7 +48,6 @@ class Window(arcade.Window):
         self.__actions: [int] = []
         self.__effects = arcade.SpriteList()
         self.__time = 0
-        self.__elapsed_time = 0
         self.__waiting = self.formation()
         self.__wave = 0
         self.__pause = False
@@ -185,7 +184,6 @@ class Window(arcade.Window):
         if self.__pause:
             return
         self.__time += delta_time
-        self.__elapsed_time += delta_time
         if self.__time > 0.3:
             self.__time = 0
             try:
@@ -205,9 +203,6 @@ class Window(arcade.Window):
                 pass
             if self.__enemy.total_idle() == self.__enemy.total():
                 self.__wave += 1
-        if self.__elapsed_time > 90:
-            self.__player.explode()
-            self.__elapsed_time = 0
         enemy_killed = self.detect_enemy_hit()
         killed = False
         win_or_loose = None

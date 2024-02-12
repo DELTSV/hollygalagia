@@ -37,7 +37,7 @@ def format_radar(radars: [Radar]) -> str:
 
 
 class Agent(Player):
-    def __init__(self, enemy_list: EnemyList, radar_position: [(int, int)], alpha, gamma):
+    def __init__(self, enemy_list: EnemyList, radar_position: [(int, int)], alpha, gamma, history):
         super().__init__(enemy_list)
         self.__score = -1
         self.__alpha = alpha
@@ -45,7 +45,7 @@ class Agent(Player):
         self.__qtable = {}
         self.__radar = arcade.SpriteList()
         self.__lidar = Lidar(self.x + CHAR_SPRITE_SIZE / 2 * SPRITE_SCALING, self.enemy_list)
-        self.__history = []
+        self.__history = history
         for x, y in radar_position:
             self.__radar.append(Radar(x, y, self.x, self.y))
         tmp = self.load()

@@ -1,4 +1,5 @@
 import time
+import sys
 
 from source.ui.Window import Window
 
@@ -17,11 +18,31 @@ alphas_gammas = [
     (0.7, 0.9)
 ]
 
-for radars in radarss:
-    for (alpha, gamma) in alphas_gammas:
-        window = Window(alpha, gamma, radars)
-        window.setup()
-        time.sleep(0.5)
-        window.run()
-        plt.plot(window.player.history)
-        plt.show()
+# for radars in radarss:
+#     for (alpha, gamma) in alphas_gammas:
+#         time.sleep(0.5)
+#         window = Window(alpha, gamma, radars)
+        # time.sleep(0.5)
+        # window.setup()
+        # time.sleep(0.5)
+        # window.run()
+        # time.sleep(0.5)
+        # plt.plot(window.player.history)
+        # plt.show()
+
+alpha = float(sys.argv[1])
+gamma = float(sys.argv[2])
+radars = []
+history = []
+for i in range (3, len(sys.argv)):
+    tmp = sys.argv[i].split(",")
+    radars.append((int(tmp[0]), int(tmp[1])))
+
+while True:
+    window = Window(alpha, gamma, radars, history)
+    window.setup()
+    window.run()
+    plt.plot(window.player.history)
+    plt.show()
+    if min(history) < -4_000_000:
+        history.clear()

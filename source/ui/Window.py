@@ -1,7 +1,7 @@
 import os
 import random
 
-# os.environ["ARCADE_HEADLESS"] = "True"
+os.environ["ARCADE_HEADLESS"] = "True"
 
 import arcade
 
@@ -17,10 +17,10 @@ from source.ui.ScoreBoard import ScoreBoard
 
 
 class Window(arcade.Window):
-    def __init__(self, alpha, gamma, radars):
+    def __init__(self, alpha, gamma, radars, history):
         super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, "HollyGalagia")
         self.__enemy = EnemyList()
-        self.__player: Agent = Agent(self.__enemy, radars, alpha, gamma)
+        self.__player: Agent = Agent(self.__enemy, radars, alpha, gamma, history)
         self.__actions: [int] = []
         self.__effects = arcade.SpriteList()
         self.__time = 0

@@ -4,7 +4,7 @@ import random
 
 from matplotlib import pyplot as plt
 
-# os.environ["ARCADE_HEADLESS"] = "True"
+os.environ["ARCADE_HEADLESS"] = "True"
 
 import arcade
 

@@ -48,6 +48,7 @@ class Window(arcade.Window):
         self.__actions: [int] = []
         self.__effects = arcade.SpriteList()
         self.__time = 0
+        self.__elapsed_time = 0
         self.__waiting = self.formation()
         self.__wave = 0
         self.__pause = False
@@ -66,13 +67,14 @@ class Window(arcade.Window):
         self.__actions.clear()
         self.__effects.clear()
         self.__time = 0
+        self.__elapsed_time = 0
         self.__waiting = self.formation()
         self.__wave = 0
         self.__pause = False
         self.__stars.clear()
         self.__scoreboard = ScoreBoard(len(self.__history) + 1)
         self.__lives.clear()
-        self.setup()
+        # self.setup()
 
 
     def setup(self):
@@ -184,6 +186,10 @@ class Window(arcade.Window):
         if self.__pause:
             return
         self.__time += delta_time
+        self.__elapsed_time += delta_time
+        if self.__elapsed_time > 50:
+            self.__player.explode()
+            self.__elapsed_time = 0
         if self.__time > 0.3:
             self.__time = 0
             try:
@@ -223,7 +229,7 @@ class Window(arcade.Window):
         self.__enemy.update()
         self.__scoreboard.update()
         if self.__enemy.total_enemies_spawned > 0 and self.__enemy.total() == 0 and self.__wave > 5:
-            if self.__scoreboard.level < 256:
+            if self.__scoreboard.level < 1:
                 self.__new_level()
             else:
                 win_or_loose = True

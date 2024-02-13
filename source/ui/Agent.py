@@ -9,11 +9,12 @@ from source.ui.Lidar import Lidar
 from source.ui.Radar import Radar, STATE
 from source.ui.ZoneRadar import ZoneRadar
 
-DEFAULT = -1
+DEFAULT = -2
 KILL = 100
+WIN = 1_000
 LOOSE = -1_000
 OUT_MAP = -1_000
-FIRED = DEFAULT
+FIRED = 0
 
 MOVE_LEFT = 0
 MOVE_RIGHT = 1
@@ -165,6 +166,7 @@ class Agent(Player):
             if not self.move_right(WINDOW_WIDTH):
                 reward += OUT_MAP
         if action == FIRE:
+            reward += FIRED
             self.shoot()
         if killed:
             reward += LOOSE
@@ -172,7 +174,7 @@ class Agent(Player):
         reward += KILL * enemy_killed
         if win_or_loose is not None:
             if win_or_loose:
-                pass
+                reward += WIN
             else:
                 reward += LOOSE
         current = self.__qtable[old_state][action]

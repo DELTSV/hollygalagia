@@ -15,5 +15,5 @@ if history is None:
     history = []
 
 window = Window(history, alpha, gamma, radars)
-window.setup()
+# window.setup()
 window.run()

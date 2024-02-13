@@ -5,7 +5,7 @@ from source.effect.PlayerExplosion import PlayerExplosion
 from source.constant import *
 from source.weapons.Missile import Missile
 
-MAX_MISSILE = 30
+MAX_MISSILE = 50
 
 class Player:
     def __init__(self, enemy_list: EnemyList):

@@ -10,9 +10,9 @@ from source.ui.Radar import Radar, STATE
 from source.ui.ZoneRadar import ZoneRadar
 
 DEFAULT = -1
-KILL = 30
-WIN = 1_000
-LOOSE = -4_000
+KILL = 10
+WIN = 100
+LOOSE = -1_000
 OUT_MAP = -100
 FIRED = 2
 
@@ -175,7 +175,7 @@ class Agent(Player):
         reward += KILL * enemy_killed
         if win_or_loose is not None:
             if win_or_loose:
-                pass
+                reward += WIN
             else:
                 reward += LOOSE
         current = self.__qtable[old_state][action]

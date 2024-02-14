@@ -167,8 +167,8 @@ class Agent(Player):
             if not self.move_right(WINDOW_WIDTH):
                 reward += OUT_MAP
         if action == FIRE:
-            reward += FIRED
-            self.shoot()
+            if self.shoot():
+                reward += FIRED
         if killed:
             reward += LOOSE
             self.revive()

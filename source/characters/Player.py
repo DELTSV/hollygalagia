@@ -105,6 +105,8 @@ class Player:
             self.__max_missiles -= 1
             self.missiles.append(Missile(self.x+10, self.y))
             self.__delay = 10
+            return True
+        return False
 
     @property
     def enemy_list(self) -> EnemyList:

@@ -103,7 +103,7 @@ class Player:
     def shoot(self):
         if not self.__killed and len(self.missiles) < 2 and self.__delay == 0:
             self.__max_missiles -= 1
-            self.missiles.append(Missile(self.x, self.y))
+            self.missiles.append(Missile(self.x+10, self.y))
             self.__delay = 10
 
     @property

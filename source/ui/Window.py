@@ -187,7 +187,7 @@ class Window(arcade.Window):
             return
         self.__time += delta_time
         self.__elapsed_time += delta_time
-        if self.__elapsed_time > 50:
+        if self.__elapsed_time > 70:
             self.__player.explode()
             self.__elapsed_time = 0
         if self.__time > 0.3:

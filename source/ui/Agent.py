@@ -9,18 +9,19 @@ from source.ui.Lidar import Lidar
 from source.ui.Radar import Radar, STATE
 from source.ui.ZoneRadar import ZoneRadar
 
-DEFAULT = -2
-KILL = 100
+DEFAULT = -1
+KILL = 30
 WIN = 1_000
-LOOSE = -1_000
-OUT_MAP = -1_000
-FIRED = 0
+LOOSE = -4_000
+OUT_MAP = -100
+FIRED = 2
 
 MOVE_LEFT = 0
 MOVE_RIGHT = 1
-FIRE = 2
+IDLE = 2
+FIRE = 3
 
-ACTIONS = [MOVE_LEFT, MOVE_RIGHT, FIRE]
+ACTIONS = [MOVE_LEFT, MOVE_RIGHT, IDLE, FIRE]
 
 
 def increment(index: [int], max: int):
@@ -174,7 +175,7 @@ class Agent(Player):
         reward += KILL * enemy_killed
         if win_or_loose is not None:
             if win_or_loose:
-                reward += WIN
+                pass
             else:
                 reward += LOOSE
         current = self.__qtable[old_state][action]

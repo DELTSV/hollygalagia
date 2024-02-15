@@ -27,7 +27,7 @@ class Radar(arcade.Sprite):
         missile_collision = arcade.check_for_collision_with_lists(self, missiles)
         enemy = len(enemy_collisions) > 0
         missile = len(missile_collision) > 0
-        if enemy or missile:
+        if (not (0 < self.center_x < WINDOW_WIDTH)) or enemy or missile:
             return self.__line, self.column, COLLIDED
         return self.__line, self.column, EMPTY
 
